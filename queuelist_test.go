@@ -356,5 +356,7 @@ func TestDeserializeQueueList(t *testing.T) {
 	var ql QueueList
 	xml.Unmarshal([]byte(source), &ql)
 
-	println("oh shit")
+	if ql.Name == "" {
+		t.Errorf("We didn't parse a name for some reason")
+	}
 }

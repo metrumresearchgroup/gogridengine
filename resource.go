@@ -75,11 +75,6 @@ func (r ResourceList) NumberofProcessors() (int32, error) {
 		return 0, err
 	}
 
-	if (resource == &Resource{}) {
-		//Empty or unlocated resource
-		return 0, errors.New("Empty or unlocatable resource")
-	}
-
 	resconv, err := strconv.ParseInt(resource.Value, 10, 32)
 	if err != nil {
 		//Failure to convert to an integer for some reason
