@@ -38,6 +38,29 @@ func Test_newStorageValue(t *testing.T) {
 				Size:  1.01,
 			},
 		},
+		{
+			name: "4 Teranutes",
+			args: args{
+				input: "4.76T",
+			},
+			want: StorageValue{
+				Bytes: 4760000000000,
+				Scale: "T",
+				Size:  4.76,
+			},
+		},
+		{
+			name: "Invalid Storage Value",
+			args: args{
+				input: "1.01M~",
+			},
+			want: StorageValue{
+				Bytes: 0,
+				Scale: "",
+				Size:  0,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

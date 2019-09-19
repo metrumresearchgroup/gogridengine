@@ -85,30 +85,32 @@ func (r ResourceList) NumberofProcessors() (int32, error) {
 }
 
 //FreeMemory returns the type safe values for Memory free (in bytes)
-func (r ResourceList) FreeMemory() (int64, error) {
+func (r ResourceList) FreeMemory() (StorageValue, error) {
 	resource, err := r.locateKey("mem_free")
 	if err != nil {
-		return 0, err
+		return StorageValue{}, err
 	}
-	identifier := resource.Value[len(resource.Value)-1]
-	value := resource.Value[-(len(resource.Value) - 2)]
-	size, err := strconv.ParseInt(string(value), 10, 64)
+	return newStorageValue(resource.Value)
+}
+
+//FreeSwap returns the type casted value for Free Swap Bytes
+func (r ResourceList) FreeSwap() (StorageValue, error) {
+	resource, err := r.locateKey("swap_free")
 	if err != nil {
-		//Failure to parse the integer component of the string
-		return 0, errors.New("Failure to parse the integer component of the string")
+		return StorageValue{}, err
 	}
 
-	switch identifier {
-	case 'G':
-		return size * (1000 * 1000), nil
-	case 'M':
-		return size * (1000), nil
-	case 'T':
-		return size * (1000 * 1000 * 1000), nil
+	return newStorageValue(resource.Value)
+}
+
+//FreeVirtualMemory returns the type casted value for Free Virtual Memory Bytes
+func (r ResourceList) FreeVirtualMemory() (StorageValue, error) {
+	resource, err := r.locateKey("virtual_free")
+	if err != nil {
+		return StorageValue{}, err
 	}
 
-	//If no known size, break to 0
-	return 0, errors.New("Unknown Size Identifier. Accepted are 'G', 'M', 'T'")
+	return newStorageValue(resource.Value)
 }
 
 func (r ResourceList) locateKey(key string) (*Resource, error) {
