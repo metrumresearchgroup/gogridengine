@@ -280,3 +280,144 @@ func TestResourceList_getStorageValueFromList(t *testing.T) {
 		})
 	}
 }
+
+func TestResourceList_getFloatValueFromList(t *testing.T) {
+	type args struct {
+		KeyName string
+	}
+	tests := []struct {
+		name    string
+		r       ResourceList
+		args    args
+		want    float64
+		wantErr bool
+	}{
+		{
+			name: "Valid Float collection",
+			r: ResourceList{
+				{
+					Name:  "m_socket",
+					Type:  "hl",
+					Value: "2.4",
+				},
+			},
+			args: args{
+				KeyName: "m_socket",
+			},
+			want:    2.4,
+			wantErr: false,
+		},
+		{
+			name: "Non Float Value",
+			r: ResourceList{
+				{
+					Name:  "m_socket",
+					Type:  "hl",
+					Value: "2G",
+				},
+			},
+			args: args{
+				KeyName: "m_socket",
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "Non existant key",
+			r: ResourceList{
+				{
+					Name:  "m_socket",
+					Type:  "hl",
+					Value: "2G",
+				},
+			},
+			args: args{
+				KeyName: "meow_socket",
+			},
+			want:    0,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.r.getFloatValueFromList(tt.args.KeyName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResourceList.getFloatValueFromList() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ResourceList.getFloatValueFromList() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestResourceList_getIntegerValueFromList(t *testing.T) {
+	type args struct {
+		KeyName string
+	}
+	tests := []struct {
+		name    string
+		r       ResourceList
+		args    args
+		want    int64
+		wantErr bool
+	}{
+		{
+			name: "Integer Value",
+			r: ResourceList{
+				{
+					Name:  "m_socket",
+					Type:  "hl",
+					Value: "2",
+				},
+			},
+			args: args{
+				KeyName: "m_socket",
+			},
+			want:    2,
+			wantErr: false,
+		},
+		{
+			name: "Non Integer Value",
+			r: ResourceList{
+				{
+					Name:  "m_socket",
+					Type:  "hl",
+					Value: "2G",
+				},
+			},
+			args: args{
+				KeyName: "m_socket",
+			},
+			want:    0,
+			wantErr: true,
+		}, {
+			name: "Non existant key",
+			r: ResourceList{
+				{
+					Name:  "m_socket",
+					Type:  "hl",
+					Value: "2G",
+				},
+			},
+			args: args{
+				KeyName: "meow_socket",
+			},
+			want:    0,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.r.getIntegerValueFromList(tt.args.KeyName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResourceList.getIntegerValueFromList() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ResourceList.getIntegerValueFromList() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

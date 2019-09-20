@@ -134,6 +134,37 @@ func (r ResourceList) getStorageValueFromList(KeyName string) (StorageValue, err
 	return newStorageValue(resource.Value)
 }
 
+//Used for extracting a float from a resource list to minimize function size
+func (r ResourceList) getFloatValueFromList(KeyName string) (float64, error) {
+	resource, err := r.locateKey(KeyName)
+	if err != nil {
+		return 0, err
+	}
+
+	resconv, err := strconv.ParseFloat(resource.Value, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return resconv, nil
+}
+
+//Used for extracting an integer froma resource list to minimize function size
+func (r ResourceList) getIntegerValueFromList(KeyName string) (int64, error) {
+	resource, err := r.locateKey(KeyName)
+	if err != nil {
+		return 0, err
+	}
+
+	resconv, err := strconv.ParseInt(resource.Value, 10, 64)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return resconv, nil
+}
+
 func (r ResourceList) locateKey(key string) (*Resource, error) {
 	for _, c := range r {
 		if c.Name == key {
