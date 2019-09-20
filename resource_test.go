@@ -216,3 +216,67 @@ func TestResourceList_Load(t *testing.T) {
 		})
 	}
 }
+
+func TestResourceList_getStorageValueFromList(t *testing.T) {
+	type args struct {
+		KeyName string
+	}
+	tests := []struct {
+		name    string
+		r       ResourceList
+		args    args
+		want    StorageValue
+		wantErr bool
+	}{
+		{
+			name: "Normal Gigabyte Memory Value",
+			r: ResourceList{
+				{
+					Name:  "free_mem",
+					Type:  "hl",
+					Value: "3.2G",
+				},
+			},
+			args: args{
+				KeyName: "free_mem",
+			},
+			want: StorageValue{
+				Size:  3.2,
+				Scale: "G",
+				Bytes: 3200000000,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Can't Locate Key",
+			r: ResourceList{
+				{
+					Name:  "free_mem",
+					Type:  "hl",
+					Value: "3.2G",
+				},
+			},
+			args: args{
+				KeyName: "meow",
+			},
+			want: StorageValue{
+				Size:  0,
+				Scale: "",
+				Bytes: 0,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.r.getStorageValueFromList(tt.args.KeyName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResourceList.getStorageValueFromList() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ResourceList.getStorageValueFromList() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
