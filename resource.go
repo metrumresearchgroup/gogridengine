@@ -86,26 +86,47 @@ func (r ResourceList) NumberofProcessors() (int32, error) {
 
 //FreeMemory returns the type safe values for Memory free (in bytes)
 func (r ResourceList) FreeMemory() (StorageValue, error) {
-	resource, err := r.locateKey("mem_free")
-	if err != nil {
-		return StorageValue{}, err
-	}
-	return newStorageValue(resource.Value)
+	return r.getStorageValueFromList("mem_free")
 }
 
 //FreeSwap returns the type casted value for Free Swap Bytes
 func (r ResourceList) FreeSwap() (StorageValue, error) {
-	resource, err := r.locateKey("swap_free")
-	if err != nil {
-		return StorageValue{}, err
-	}
-
-	return newStorageValue(resource.Value)
+	return r.getStorageValueFromList("swap_free")
 }
 
 //FreeVirtualMemory returns the type casted value for Free Virtual Memory Bytes
 func (r ResourceList) FreeVirtualMemory() (StorageValue, error) {
-	resource, err := r.locateKey("virtual_free")
+	return r.getStorageValueFromList("virtual_free")
+}
+
+//TotalMemory returns the Type cast value for Total Memory in bytes
+func (r ResourceList) TotalMemory() (StorageValue, error) {
+	return r.getStorageValueFromList("mem_total")
+}
+
+//TotalSwap returns the Type cast value for Total Swap in bytes
+func (r ResourceList) TotalSwap() (StorageValue, error) {
+	return r.getStorageValueFromList("swap_total")
+}
+
+//TotalVirtual returns the Type cast value for the virtual memory total in bytes
+func (r ResourceList) TotalVirtual() (StorageValue, error) {
+	return r.getStorageValueFromList("virtual_total")
+}
+
+//MemoryUsed returns the type cast value for Memory used in bytes
+func (r ResourceList) MemoryUsed() (StorageValue, error) {
+	return r.getStorageValueFromList("mem_used")
+}
+
+//SwapUsed returns the type cast value for swap used in bytes
+func (r ResourceList) SwapUsed() (StorageValue, error) {
+	return r.getStorageValueFromList("swap_used")
+}
+
+//Used for extracting a storage value from the resource list to minimize function size
+func (r ResourceList) getStorageValueFromList(KeyName string) (StorageValue, error) {
+	resource, err := r.locateKey(KeyName)
 	if err != nil {
 		return StorageValue{}, err
 	}

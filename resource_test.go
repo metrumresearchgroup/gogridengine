@@ -145,3 +145,74 @@ func TestResourceList_NumberofProcessors(t *testing.T) {
 		})
 	}
 }
+
+func TestResourceList_Load(t *testing.T) {
+	type args struct {
+		window string
+	}
+	tests := []struct {
+		name    string
+		r       ResourceList
+		args    args
+		want    float64
+		wantErr bool
+	}{
+		{
+			name: "Normal float value",
+			r: ResourceList{
+				{
+					Name:  "load_avg",
+					Type:  "hl",
+					Value: "31.63",
+				},
+			},
+			args: args{
+				window: "avg",
+			},
+			want:    31.63,
+			wantErr: false,
+		},
+		{
+			name: "Unknown window",
+			r: ResourceList{
+				{
+					Name:  "load_avg",
+					Type:  "hl",
+					Value: "31.63",
+				},
+			},
+			args: args{
+				window: "meow",
+			},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name: "Unparseable float",
+			r: ResourceList{
+				{
+					Name:  "load_avg",
+					Type:  "hl",
+					Value: "31.meow",
+				},
+			},
+			args: args{
+				window: "avg",
+			},
+			want:    0,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.r.Load(tt.args.window)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResourceList.Load() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ResourceList.Load() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
