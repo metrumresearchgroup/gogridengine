@@ -32,7 +32,7 @@ jobs:
         go get -v golang.org/x/tools/cmd/cover
         go get -v github.com/mattn/goveralls
         cd /home/runner/work/gogridengine/gogridengine
-        /home/runner/go/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALL_TOKEN
+        /home/runner/go/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
     - name: Build
       run: go build -v .
