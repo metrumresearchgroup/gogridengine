@@ -29,9 +29,9 @@ jobs:
 
     - name: Coverall
       run: |
-        go get golang.org/x/tools/cmd/cover
-        go get github.com/mattn/goveralls
-        /home/runner/work/woodpecker/go/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALL_TOKEN
+        go get -v golang.org/x/tools/cmd/cover
+        go get -v github.com/mattn/goveralls
+        $GOROOT/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALL_TOKEN
 
     - name: Build
       run: go build -v .
