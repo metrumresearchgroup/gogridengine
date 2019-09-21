@@ -34,9 +34,8 @@ jobs:
         go get -v golang.org/x/tools/cmd/cover
         go get -v github.com/mattn/goveralls
         mkdir -p /home/runner/src/github.com/metrumresearchgroup
-        cp -vrf /home/runner/work/gogridengine /home/runner/src/github.com/metrumresearchgroup
-        cd /home/runner/src/github.com/metrumresearchgroup
-        go test -v -covermode=count -coverprofile=coverage.out
+        cp -vrf /home/runner/work/gogridengine/gogridengine /home/runner/src/github.com/metrumresearchgroup
+        cd /home/runner/src/github.com/metrumresearchgroup/gogridengine
         /home/runner/go/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
     - name: Build
