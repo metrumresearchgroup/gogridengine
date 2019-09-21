@@ -121,28 +121,28 @@ func TestResourceListFreeVirtualMemory(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Existing Virtual Memory Key",
 			r: ResourceList{
 				{
 					Name:  "virtual_free",
 					Type:  "hl",
-					Value: "2G",
+					Value: "1G",
 				},
 			},
 			want: StorageValue{
-				Size:  2,
+				Size:  1,
 				Scale: "G",
-				Bytes: 2000000000,
+				Bytes: 1000000000,
 			},
 			wantErr: false,
 		},
 		{
-			name: "No Key",
+			name: "No Virtual Memory Key Present",
 			r: ResourceList{
 				{
-					Name:  "free_mem",
+					Name:  "unfree_mem",
 					Type:  "hl",
-					Value: "2G",
+					Value: "4G",
 				},
 			},
 			want: StorageValue{
@@ -175,28 +175,28 @@ func TestResourceListTotalMemory(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Memory Total Present",
 			r: ResourceList{
 				{
 					Name:  "mem_total",
 					Type:  "hl",
-					Value: "2G",
+					Value: "22G",
 				},
 			},
 			want: StorageValue{
-				Size:  2,
+				Size:  22,
 				Scale: "G",
-				Bytes: 2000000000,
+				Bytes: 22000000000,
 			},
 			wantErr: false,
 		},
 		{
-			name: "No Key",
+			name: "No memory total present",
 			r: ResourceList{
 				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
+					Name:  "unpresent_memory_total",
+					Type:  "hk",
+					Value: "22G",
 				},
 			},
 			want: StorageValue{
@@ -229,28 +229,28 @@ func TestResourceListTotalSwap(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Swap total value present",
 			r: ResourceList{
 				{
 					Name:  "swap_total",
 					Type:  "hl",
-					Value: "2G",
+					Value: "432G",
 				},
 			},
 			want: StorageValue{
-				Size:  2,
+				Size:  432,
 				Scale: "G",
-				Bytes: 2000000000,
+				Bytes: 432000000000,
 			},
 			wantErr: false,
 		},
 		{
-			name: "No Key",
+			name: "No swap total present in resource list",
 			r: ResourceList{
 				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
+					Name:  "processor_count",
+					Type:  "af",
+					Value: "4",
 				},
 			},
 			want: StorageValue{
@@ -283,28 +283,28 @@ func TestResourceListTotalVirtual(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Virtual total present in list",
 			r: ResourceList{
 				{
 					Name:  "virtual_total",
 					Type:  "hl",
-					Value: "2G",
+					Value: "92G",
 				},
 			},
 			want: StorageValue{
-				Size:  2,
+				Size:  92,
 				Scale: "G",
-				Bytes: 2000000000,
+				Bytes: 92000000000,
 			},
 			wantErr: false,
 		},
 		{
-			name: "No Key",
+			name: "Not present",
 			r: ResourceList{
 				{
-					Name:  "free_mem",
+					Name:  "le_meow",
 					Type:  "hl",
-					Value: "2G",
+					Value: `/|\30\|/`,
 				},
 			},
 			want: StorageValue{
@@ -337,28 +337,28 @@ func TestResourceListMemoryUsed(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Memory Used present",
 			r: ResourceList{
 				{
 					Name:  "mem_used",
-					Type:  "hl",
-					Value: "2G",
+					Type:  "lh",
+					Value: "29G",
 				},
 			},
 			want: StorageValue{
-				Size:  2,
+				Size:  29,
 				Scale: "G",
-				Bytes: 2000000000,
+				Bytes: 29000000000,
 			},
 			wantErr: false,
 		},
 		{
-			name: "No Key",
+			name: "Definitely not present",
 			r: ResourceList{
 				{
-					Name:  "free_mem",
+					Name:  "totally_not_present",
 					Type:  "hl",
-					Value: "2G",
+					Value: "22233G",
 				},
 			},
 			want: StorageValue{
@@ -391,23 +391,23 @@ func TestResourceListSwapUsed(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Extracting used swap",
 			r: ResourceList{
 				{
 					Name:  "swap_used",
-					Type:  "hl",
-					Value: "2G",
+					Type:  "mk",
+					Value: "140G",
 				},
 			},
 			want: StorageValue{
-				Size:  2,
+				Size:  140,
 				Scale: "G",
-				Bytes: 2000000000,
+				Bytes: 140000000000,
 			},
 			wantErr: false,
 		},
 		{
-			name: "No Key",
+			name: "requested value not present",
 			r: ResourceList{
 				{
 					Name:  "free_mem",
@@ -445,23 +445,23 @@ func TestResourceListVirtualUsed(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "SV for virtual used is present",
 			r: ResourceList{
 				{
 					Name:  "virtual_used",
 					Type:  "hl",
-					Value: "2G",
+					Value: "0G",
 				},
 			},
 			want: StorageValue{
-				Size:  2,
+				Size:  0,
 				Scale: "G",
-				Bytes: 2000000000,
+				Bytes: 0,
 			},
 			wantErr: false,
 		},
 		{
-			name: "No Key",
+			name: "Could not locate key",
 			r: ResourceList{
 				{
 					Name:  "free_mem",
@@ -499,7 +499,7 @@ func TestResourceListCPU(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Verify CPU Utilization",
 			r: ResourceList{
 				{
 					Name:  "cpu",
@@ -511,12 +511,12 @@ func TestResourceListCPU(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "No Key",
+			name: "NO CPU Util in the output",
 			r: ResourceList{
 				{
-					Name:  "free_mem",
+					Name:  "not_cpu_usage",
 					Type:  "hl",
-					Value: "2G",
+					Value: "4.01",
 				},
 			},
 			want:    0,
@@ -545,28 +545,16 @@ func TestResourceListNPLoadAverage(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Load Average in total",
 			r: ResourceList{
 				{
 					Name:  "np_load_avg",
 					Type:  "hl",
-					Value: "1.04",
+					Value: "1.03",
 				},
 			},
-			want:    1.04,
+			want:    1.03,
 			wantErr: false,
-		},
-		{
-			name: "No Key",
-			r: ResourceList{
-				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
-				},
-			},
-			want:    0,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -591,28 +579,16 @@ func TestResourceListNPLoadShort(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "verifying load short value",
 			r: ResourceList{
 				{
 					Name:  "np_load_short",
 					Type:  "hl",
-					Value: "1.04",
+					Value: "1.05",
 				},
 			},
-			want:    1.04,
+			want:    1.05,
 			wantErr: false,
-		},
-		{
-			name: "No Key",
-			r: ResourceList{
-				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
-				},
-			},
-			want:    0,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -637,28 +613,16 @@ func TestResourceListNPLoadMedium(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Medium Load",
 			r: ResourceList{
 				{
 					Name:  "np_load_medium",
 					Type:  "hl",
-					Value: "1.04",
+					Value: "1.06",
 				},
 			},
-			want:    1.04,
+			want:    1.06,
 			wantErr: false,
-		},
-		{
-			name: "No Key",
-			r: ResourceList{
-				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
-				},
-			},
-			want:    0,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -683,28 +647,16 @@ func TestResourceListNPLoadLong(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Longterm average",
 			r: ResourceList{
 				{
 					Name:  "np_load_long",
 					Type:  "hl",
-					Value: "1.04",
+					Value: "1.07",
 				},
 			},
-			want:    1.04,
+			want:    1.07,
 			wantErr: false,
-		},
-		{
-			name: "No Key",
-			r: ResourceList{
-				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
-				},
-			},
-			want:    0,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -729,7 +681,7 @@ func TestResourceListProcessorCount(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Number of processors",
 			r: ResourceList{
 				{
 					Name:  "num_proc",
@@ -739,18 +691,6 @@ func TestResourceListProcessorCount(t *testing.T) {
 			},
 			want:    14,
 			wantErr: false,
-		},
-		{
-			name: "No Key",
-			r: ResourceList{
-				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
-				},
-			},
-			want:    0,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -775,7 +715,7 @@ func TestResourceListMSocketCount(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "M Socket Count",
 			r: ResourceList{
 				{
 					Name:  "m_socket",
@@ -785,18 +725,6 @@ func TestResourceListMSocketCount(t *testing.T) {
 			},
 			want:    14,
 			wantErr: false,
-		},
-		{
-			name: "No Key",
-			r: ResourceList{
-				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
-				},
-			},
-			want:    0,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -821,28 +749,16 @@ func TestResourceListMThreadCount(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "M Thread count",
 			r: ResourceList{
 				{
 					Name:  "m_thread",
-					Type:  "hl",
-					Value: "14",
+					Type:  "lh",
+					Value: "114",
 				},
 			},
-			want:    14,
+			want:    114,
 			wantErr: false,
-		},
-		{
-			name: "No Key",
-			r: ResourceList{
-				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
-				},
-			},
-			want:    0,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -867,28 +783,16 @@ func TestResourceListMCoreCount(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid extraction",
+			name: "Total M Core Count",
 			r: ResourceList{
 				{
 					Name:  "m_core",
-					Type:  "hl",
-					Value: "14",
+					Type:  "aa",
+					Value: "15",
 				},
 			},
-			want:    14,
+			want:    15,
 			wantErr: false,
-		},
-		{
-			name: "No Key",
-			r: ResourceList{
-				{
-					Name:  "free_mem",
-					Type:  "hl",
-					Value: "2G",
-				},
-			},
-			want:    0,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
