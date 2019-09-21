@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_newStorageValue(t *testing.T) {
+func TestNewStorageValue(t *testing.T) {
 	type args struct {
 		input string
 	}
@@ -15,7 +15,6 @@ func Test_newStorageValue(t *testing.T) {
 		want    StorageValue
 		wantErr bool
 	}{
-		// TODO: Add test cases.
 		{
 			name: "57 Gigabytes",
 			args: args{
@@ -76,7 +75,7 @@ func Test_newStorageValue(t *testing.T) {
 	}
 }
 
-func TestResourceList_NumberofProcessors(t *testing.T) {
+func TestResourceListNumberofProcessors(t *testing.T) {
 	tests := []struct {
 		name    string
 		r       ResourceList
@@ -146,7 +145,7 @@ func TestResourceList_NumberofProcessors(t *testing.T) {
 	}
 }
 
-func TestResourceList_Load(t *testing.T) {
+func TestResourceListLoad(t *testing.T) {
 	type args struct {
 		window string
 	}
@@ -217,7 +216,7 @@ func TestResourceList_Load(t *testing.T) {
 	}
 }
 
-func TestResourceList_getStorageValueFromList(t *testing.T) {
+func TestResourceListGetStorageValueFromList(t *testing.T) {
 	type args struct {
 		KeyName string
 	}
@@ -281,7 +280,7 @@ func TestResourceList_getStorageValueFromList(t *testing.T) {
 	}
 }
 
-func TestResourceList_getFloatValueFromList(t *testing.T) {
+func TestResourceListGetFloatValueFromList(t *testing.T) {
 	type args struct {
 		KeyName string
 	}
@@ -352,7 +351,7 @@ func TestResourceList_getFloatValueFromList(t *testing.T) {
 	}
 }
 
-func TestResourceList_getIntegerValueFromList(t *testing.T) {
+func TestResourceListGetIntegerValueFromList(t *testing.T) {
 	type args struct {
 		KeyName string
 	}
