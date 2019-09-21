@@ -33,11 +33,12 @@ jobs:
       run: |
         go get -v golang.org/x/tools/cmd/cover
         go get -v github.com/mattn/goveralls
-        mkdir -p /home/runner/src/github.com/metrumresearchgroup
-        cp -vrf /home/runner/work/gogridengine/gogridengine /home/runner/src/github.com/metrumresearchgroup
-        cd /home/runner/src/github.com/metrumresearchgroup/gogridengine
+        mkdir -p $GOROOT/src/github.com/metrumresearchgroup
+        cp -vrf /home/runner/work/gogridengine/gogridengine $GOROOT/src/github.com/metrumresearchgroup
+        cd $GOROOT/src/github.com/metrumresearchgroup/gogridengine
         go test -v -covermode=count -coverprofile=coverage.out
-        /home/runner/go/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+        cp /home/runner/go/bin/goveralls $GOROOT/bin
+        $GOROOT/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
     - name: Build
       run: go build -v .
