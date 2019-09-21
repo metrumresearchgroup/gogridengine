@@ -28,6 +28,8 @@ jobs:
       run: go test -v -covermode=count -coverprofile=coverage.out
 
     - name: Coverall
+      env:
+        COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
       run: |
         go get -v golang.org/x/tools/cmd/cover
         go get -v github.com/mattn/goveralls
