@@ -36,6 +36,7 @@ jobs:
         mkdir -p /home/runner/src/github.com/metrumresearchgroup
         cp -vrf /home/runner/work/gogridengine/gogridengine /home/runner/src/github.com/metrumresearchgroup
         cd /home/runner/src/github.com/metrumresearchgroup/gogridengine
+        go test -v -covermode=count -coverprofile=coverage.out
         /home/runner/go/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
     - name: Build
