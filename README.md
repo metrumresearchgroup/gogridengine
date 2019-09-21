@@ -1,5 +1,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=metrumresearchgroup_gogridengine&metric=alert_status)](https://sonarcloud.io/dashboard?id=metrumresearchgroup_gogridengine)
 
+[![Coverage Status](https://coveralls.io/repos/github/metrumresearchgroup/gogridengine/badge.svg?branch=HEAD)](https://coveralls.io/github/metrumresearchgroup/gogridengine?branch=HEAD)
+
 # SunGrid Engine Serialization
 
 This library will allow you to take the SGE XML output from queue status and serialize it programmatically into Go objects. As a note, natively unserializing will provide a ResourceList object containing all of the dynamic resources serialized into strings.
