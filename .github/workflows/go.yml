@@ -25,7 +25,9 @@ jobs:
         fi
         
     - name: Test
-      run: go test -v -covermode=count -coverprofile=coverage.out
+      run: |
+        go test -v -covermode=count -coverprofile=general.out
+        go test -json > report.json
 
     - name: Coverall
       env:
