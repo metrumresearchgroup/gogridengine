@@ -1,6 +1,6 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=metrumresearchgroup_gogridengine&metric=alert_status)](https://sonarcloud.io/dashboard?id=metrumresearchgroup_gogridengine)
 
-[![Coverage Status](https://coveralls.io/repos/github/metrumresearchgroup/gogridengine/badge.svg?branch=HEAD)](https://coveralls.io/github/metrumresearchgroup/gogridengine?branch=HEAD)
+[![Coverage Status](https://coveralls.io/repos/github/metrumresearchgroup/gogridengine/badge.svg)](https://coveralls.io/github/metrumresearchgroup/gogridengine)
 
 # SunGrid Engine Serialization
 
