@@ -2,6 +2,7 @@ package gogridengine
 
 import (
 	"encoding/xml"
+	"strings"
 	"testing"
 )
 
@@ -358,5 +359,49 @@ func TestDeserializeQueueList(t *testing.T) {
 
 	if ql.Name == "" {
 		t.Errorf("We didn't parse a name for some reason")
+	}
+}
+
+func TestSerializeToXML(t *testing.T) {
+	QueueList := QueueList{
+		XMLName: xml.Name{
+			Local: "Queue-List",
+		},
+		JobList: []JobList{
+			{
+				XMLName: xml.Name{
+					Local: "job_list",
+				},
+				JATPriority: 1.04,
+				JBJobNumber: 4,
+				JobName:     "Meow01",
+				JobOwner:    "Darrell Breeden",
+				Slots:       4,
+				State:       "running",
+			},
+		},
+		LoadAverage: 4.04,
+		Resources: ResourceList{
+			Resource{
+				Name:  "free_mem",
+				Type:  "hl",
+				Value: "1.04G",
+			},
+		},
+		SlotsTotal:    4,
+		SlotsReserved: 2,
+		SlotsUsed:     2,
+	}
+
+	output, err := xml.Marshal(QueueList)
+
+	if err != nil {
+		t.Errorf("Could not marshall object correctly")
+	}
+
+	formatted := string(output)
+
+	if !strings.Contains(formatted, "Meow01") {
+		t.Errorf("Does not contain one of the raw components")
 	}
 }

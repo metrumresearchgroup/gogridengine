@@ -92,3 +92,80 @@ func TestDeSerializeSGEQStat(t *testing.T) {
 		t.Errorf("Looks like we failed to serialize all the way down")
 	}
 }
+
+func TestJobInfo_GetXML(t *testing.T) {
+	type fields struct {
+		XMLName   xml.Name
+		QueueInfo QueueInfo
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Verify has headers",
+			fields: fields{
+				XMLName: xml.Name{
+					Local: "job_info",
+				},
+				QueueInfo: QueueInfo{
+					XMLName: xml.Name{
+						Local: "queue_info",
+					},
+					Queues: []QueueList{
+						{
+							XMLName: xml.Name{
+								Local: "Queue-List",
+							},
+							Name:          "testing.local",
+							SlotsTotal:    4,
+							SlotsUsed:     1,
+							SlotsReserved: 3,
+							LoadAverage:   2.04,
+							Resources: ResourceList{
+								{
+									Name:  "free_mem",
+									Type:  "hl",
+									Value: "1.4G",
+								},
+							},
+							JobList: []JobList{
+								{
+									XMLName: xml.Name{
+										Local: "job_list",
+									},
+									State:       "running",
+									JBJobNumber: 13,
+									JATPriority: 1.04,
+									JobName:     "Initial Test",
+									JobOwner:    "You",
+									Slots:       3,
+								},
+							},
+						},
+					},
+				},
+			},
+			want:    `<?xml version='1.0'?><job_info><queue_info><Queue-List><name>testing.local</name><qtype></qtype><slots_used>1</slots_used><slots_rsv>3</slots_rsv><slots_total>4</slots_total><load_avg>2.04</load_avg><resource name="free_mem" type="hl">1.4G</resource><job_list state="running"><JB_job_number>13</JB_job_number><JAT_prio>1.04</JAT_prio><JB_name>Initial Test</JB_name><JB_owner>You</JB_owner><JAT_start_time></JAT_start_time><slots>3</slots></job_list></Queue-List></queue_info></job_info>`,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			q := JobInfo{
+				XMLName:   tt.fields.XMLName,
+				QueueInfo: tt.fields.QueueInfo,
+			}
+			got, err := q.GetXML()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("JobInfo.GetXML() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("JobInfo.GetXML() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
