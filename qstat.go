@@ -36,6 +36,7 @@ func qStatFromExec() (string, error) {
 	defer cancel()
 
 	command := exec.CommandContext(ctx, "qstat -F xml")
+	command.Env = os.Environ()
 	output := &bytes.Buffer{}
 	command.Stdout = output
 	err := command.Run()
