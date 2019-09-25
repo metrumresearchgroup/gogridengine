@@ -15,13 +15,13 @@ import (
 //GetQstatOutput is used to pull in XML content from either the QSTAT command or generated data for testing purpoes
 func GetQstatOutput() (string, error) {
 
-	var isTest bool = false
+	var inTestMode bool = false
 
 	if os.Getenv("TEST") == "true" {
-		isTest = true
+		inTestMode = true
 	}
 
-	if !isTest {
+	if !inTestMode {
 		return qStatFromExec()
 	}
 
