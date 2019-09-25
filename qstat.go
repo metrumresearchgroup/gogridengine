@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/xml"
+	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -30,16 +32,26 @@ func GetQstatOutput() (string, error) {
 }
 
 func qStatFromExec() (string, error) {
+
+	//Locate the binary in existing path
+	binary, err := exec.LookPath("qstat")
+
+	if err != nil {
+		log.Error("Couldn't locate binary", err)
+		return "", errors.New("Couldn't locate the binary")
+	}
+
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	//Cowardly cancel on any other exit mode
 	defer cancel()
 
-	command := exec.CommandContext(ctx, "qstat -F xml")
+	command := exec.CommandContext(ctx, binary, "-F", "-xml")
 	command.Env = os.Environ()
+	log.Debug(command.Env)
 	output := &bytes.Buffer{}
 	command.Stdout = output
-	err := command.Run()
+	err = command.Run()
 	if err != nil {
 		return "", err
 	}
