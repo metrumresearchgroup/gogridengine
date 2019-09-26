@@ -36,7 +36,7 @@ func TestDeSerializeXml(t *testing.T) {
 		t.Errorf("Invalid Job Owner marshalled OR no job owner marshalled")
 	}
 
-	if t2.State != "running" {
+	if t2.State != "r" {
 		t.Errorf("Invalid State marshalled OR no state marshalled at all")
 	}
 
