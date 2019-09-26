@@ -48,3 +48,69 @@ func TestDeSerializeXml(t *testing.T) {
 		t.Errorf("Invalid slots value marshalled OR no slots value marshalled at all")
 	}
 }
+
+func TestIsJobRunning(t *testing.T) {
+
+	pending := `<job_list state="pending">
+	<JB_job_number>3517</JB_job_number>
+	<JAT_prio>0.55500</JAT_prio>
+	<JB_name>Run1417</JB_name>
+	<JB_owner>devinp</JB_owner>
+	<state>qw</state>
+	<JB_submission_time>2019-09-26T10:17:37</JB_submission_time>
+	<slots>1</slots>
+  </job_list>`
+
+	running := `<job_list state="running">
+  <JB_job_number>3517</JB_job_number>
+  <JAT_prio>0.55500</JAT_prio>
+  <JB_name>Run1417</JB_name>
+  <JB_owner>devinp</JB_owner>
+  <state>r</state>
+  <JB_submission_time>2019-09-26T10:17:37</JB_submission_time>
+  <slots>1</slots>
+</job_list>`
+
+	var pl JobList
+	var rl JobList
+	err := xml.Unmarshal([]byte(pending), &pl)
+	if err != nil {
+		t.Errorf("Unable to unmarshall xml")
+	}
+
+	err = xml.Unmarshal([]byte(running), &rl)
+	if err != nil {
+		t.Errorf("Unable to unmarshall xml")
+	}
+
+	type args struct {
+		job JobList
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "Pending Job",
+			args: args{
+				job: pl,
+			},
+			want: 0,
+		},
+		{
+			name: "Running Job",
+			args: args{
+				job: rl,
+			},
+			want: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsJobRunning(tt.args.job); got != tt.want {
+				t.Errorf("IsJobRunning() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

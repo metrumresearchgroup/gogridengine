@@ -2,6 +2,7 @@ package gogridengine
 
 import (
 	"encoding/xml"
+	"os"
 	"testing"
 )
 
@@ -94,6 +95,8 @@ func TestDeSerializeSGEQStat(t *testing.T) {
 }
 
 func TestJobInfo_GetXML(t *testing.T) {
+
+	os.Setenv("TEST", "true")
 	type fields struct {
 		XMLName   xml.Name
 		QueueInfo QueueInfo
@@ -136,19 +139,20 @@ func TestJobInfo_GetXML(t *testing.T) {
 									XMLName: xml.Name{
 										Local: "job_list",
 									},
-									State:       "running",
-									JBJobNumber: 13,
-									JATPriority: 1.04,
-									JobName:     "Initial Test",
-									JobOwner:    "You",
-									Slots:       3,
+									StateAttribute: "running",
+									State:          "r",
+									JBJobNumber:    13,
+									JATPriority:    1.04,
+									JobName:        "Initial Test",
+									JobOwner:       "You",
+									Slots:          3,
 								},
 							},
 						},
 					},
 				},
 			},
-			want:    `<?xml version='1.0'?><job_info><queue_info><Queue-List><name>testing.local</name><qtype></qtype><slots_used>1</slots_used><slots_rsv>3</slots_rsv><slots_total>4</slots_total><load_avg>2.04</load_avg><resource name="free_mem" type="hl">1.4G</resource><job_list state="running"><JB_job_number>13</JB_job_number><JAT_prio>1.04</JAT_prio><JB_name>Initial Test</JB_name><JB_owner>You</JB_owner><JAT_start_time></JAT_start_time><slots>3</slots></job_list></Queue-List></queue_info></job_info>`,
+			want:    `<?xml version='1.0'?><job_info><queue_info><Queue-List><name>testing.local</name><qtype></qtype><slots_used>1</slots_used><slots_rsv>3</slots_rsv><slots_total>4</slots_total><load_avg>2.04</load_avg><resource name="free_mem" type="hl">1.4G</resource><job_list state="running"><state>r</state><JB_job_number>13</JB_job_number><JAT_prio>1.04</JAT_prio><JB_name>Initial Test</JB_name><JB_owner>You</JB_owner><JAT_start_time></JAT_start_time><slots>3</slots></job_list></Queue-List></queue_info></job_info>`,
 			wantErr: false,
 		},
 	}
