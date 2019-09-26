@@ -13,7 +13,8 @@ type JobList struct {
 	JATPriority    float64  `xml:"JAT_prio" json:"jat_prio"`
 	JobName        string   `xml:"JB_name" json:"jb_name"`
 	JobOwner       string   `xml:"JB_owner" json:"jb_owner"`
-	StartTime      string   `xml:"JAT_start_time" json:"start_time"`
+	StartTime      string   `xml:"JAT_start_time,omitempty" json:"start_time"`
+	SubmittedTime  string   `xml:"JB_submission_time,omitempty" json:"submitted_time"`
 	Slots          int32    `xml:"slots" json:"slots"`
 }
 
