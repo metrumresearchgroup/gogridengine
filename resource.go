@@ -10,7 +10,7 @@ type ResourceList []Resource
 
 //Resource is a more general reported item from
 type Resource struct {
-	XMLName xml.Name `xml:"resource"`
+	XMLName xml.Name `xml:"resource" json:"-"`
 	Name    string   `xml:"name,attr" json:"name"`
 	Type    string   `xml:"type,attr" json:"type"`
 	Value   string   `xml:",innerxml"`

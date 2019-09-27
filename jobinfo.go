@@ -12,7 +12,7 @@ const (
 type JobInfo struct {
 	XMLName     xml.Name   `xml:"job_info" json:"job_info"`
 	QueueInfo   QueueInfo  `xml:"queue_info" json:"queue_info"`
-	PendingJobs PendingJob `xml:"job_info,omitempty" json:"job_info"`
+	PendingJobs PendingJob `xml:"job_info,omitempty" json:"pending_jobs"`
 }
 
 //GetXML renders down the XML with UTF-8 opening tags to ensure feasability for testing of output
