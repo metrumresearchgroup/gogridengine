@@ -153,6 +153,18 @@ func generatedQstatOputput() (string, error) {
 							JobOwner:       "Owner-" + strconv.Itoa(random.Int()),
 							Slots:          3,
 						},
+						{
+							XMLName: xml.Name{
+								Local: "job_list",
+							},
+							State:          "r",
+							JBJobNumber:    int64(random.Int()),
+							JATPriority:    random.Float64(),
+							StateAttribute: "running",
+							JobName:        "validation",
+							JobOwner:       "Owner-" + strconv.Itoa(random.Int()),
+							Slots:          3,
+						},
 					},
 				},
 				{
