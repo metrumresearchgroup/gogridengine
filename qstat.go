@@ -68,6 +68,22 @@ func generatedQstatOputput() (string, error) {
 		XMLName: xml.Name{
 			Local: "job_info",
 		},
+		PendingJobs: PendingJob{
+			JobList: []JobList{
+				{
+					XMLName: xml.Name{
+						Local: "job_list",
+					},
+					State:          "pw",
+					StateAttribute: "pending",
+					JBJobNumber:    int64(random.Int()),
+					JATPriority:    random.Float64(),
+					JobName:        "Job-" + strconv.Itoa(random.Int()),
+					JobOwner:       "Owner-" + strconv.Itoa(random.Int()),
+					Slots:          3,
+				},
+			},
+		},
 		QueueInfo: QueueInfo{
 			XMLName: xml.Name{
 				Local: "queue_info",
@@ -129,7 +145,7 @@ func generatedQstatOputput() (string, error) {
 							XMLName: xml.Name{
 								Local: "job_list",
 							},
-							State:       "running",
+							State:       "r",
 							JBJobNumber: int64(random.Int()),
 							JATPriority: random.Float64(),
 							JobName:     "Job-" + strconv.Itoa(random.Int()),
@@ -150,7 +166,7 @@ func generatedQstatOputput() (string, error) {
 							XMLName: xml.Name{
 								Local: "job_list",
 							},
-							State:       "running",
+							State:       "r",
 							JBJobNumber: 1,
 							JATPriority: 1,
 							JobName:     "Second-Host-Job",
