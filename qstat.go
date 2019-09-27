@@ -158,7 +158,7 @@ func generatedQstatOputput() (string, error) {
 								Local: "job_list",
 							},
 							State:          "r",
-							JBJobNumber:    int64(random.Int()),
+							JBJobNumber:    44,
 							JATPriority:    random.Float64(),
 							StateAttribute: "running",
 							JobName:        "validation",
