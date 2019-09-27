@@ -193,7 +193,15 @@ func TestDeSerializePendingQStat(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	println("oh shit")
+	//Verify that we have at least one running job
+	if len(ji.QueueInfo.Queues[0].JobList) <= 0 {
+		t.Errorf("There are no running jobs in the first queue list serialized")
+	}
+
+	//Verify that we have pending jobs
+	if len(ji.PendingJobs.JobList) <= 0 {
+		t.Errorf("No pending jobs were serialized")
+	}
 }
 
 func TestJobInfo_GetXML(t *testing.T) {
