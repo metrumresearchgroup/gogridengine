@@ -104,7 +104,7 @@ func TestDeleteQueuedJobByID(t *testing.T) {
 			os.Unsetenv("TEST")
 		}
 		t.Run(tt.name, func(t *testing.T) {
-			if err := DeleteQueuedJobByID(tt.args.jobs); (err != nil) != tt.wantErr {
+			if _, err := DeleteQueuedJobByID(tt.args.jobs); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteQueuedJobByID() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -164,7 +164,7 @@ func TestDeleteQueuedJobByUsernames(t *testing.T) {
 			os.Unsetenv("TEST")
 		}
 		t.Run(tt.name, func(t *testing.T) {
-			if err := DeleteQueuedJobByUsernames(tt.args.usernames); (err != nil) != tt.wantErr {
+			if _, err := DeleteQueuedJobByUsernames(tt.args.usernames); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteQueuedJobByUsernames() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

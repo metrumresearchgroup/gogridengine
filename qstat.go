@@ -27,21 +27,22 @@ func GetQstatOutput() (string, error) {
 }
 
 //DeleteQueuedJobByID is used to delete (1 or many) jobs by concatenating their IDs together and passing them to qdel
-func DeleteQueuedJobByID(jobs []string) error {
+func DeleteQueuedJobByID(jobs []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
 	if os.Getenv("TEST") == "true" {
-		return nil
+		return "", nil
 	}
 
-	s := strings.Join(jobs, " ")
+	s := strings.Join(jobs, ",")
+	s = strings.TrimSpace(s)
 
 	//Locate the binary in existing path
 	binary, err := exec.LookPath("qdel")
 
 	if err != nil {
 		log.Error("Couldn't locate binary", err)
-		return errors.New("Couldn't locate the binary")
+		return "", errors.New("Couldn't locate the binary")
 	}
 
 	ctx := context.Background()
@@ -52,32 +53,35 @@ func DeleteQueuedJobByID(jobs []string) error {
 	log.Info("Requesting qdel with a list of IDs: ", s)
 	command := exec.CommandContext(ctx, binary, s)
 	command.Env = os.Environ()
+	output := &bytes.Buffer{}
+	command.Stdout = output
 	log.Info(command.String())
 	err = command.Run()
 	if err != nil {
-		log.Error(err)
-		return err
+		log.Error(output.String())
+		return output.String(), err
 	}
 
-	return nil
+	return output.String(), nil
 }
 
 //DeleteQueuedJobByUsernames is used to delete (1 or many) jobs by concatenating usernames together and feeding them to qdel
-func DeleteQueuedJobByUsernames(usernames []string) error {
+func DeleteQueuedJobByUsernames(usernames []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
 	if os.Getenv("TEST") == "true" {
-		return nil
+		return "", nil
 	}
 
 	s := strings.Join(usernames, ",")
+	s = strings.TrimSpace(s)
 
 	//Locate the binary in existing path
 	binary, err := exec.LookPath("qdel")
 
 	if err != nil {
 		log.Error("Couldn't locate binary", err)
-		return errors.New("Couldn't locate the binary")
+		return "", errors.New("Couldn't locate the binary")
 	}
 
 	ctx := context.Background()
@@ -88,14 +92,17 @@ func DeleteQueuedJobByUsernames(usernames []string) error {
 	log.Info("Running qdel with the following user input ", s)
 	command := exec.CommandContext(ctx, binary, "-u", s)
 	command.Env = os.Environ()
+	output := &bytes.Buffer{}
+	command.Stdout = output
 	log.Info(command.String())
 	err = command.Run()
 	if err != nil {
+		log.Error(output.String())
 		log.Error(err)
-		return err
+		return output.String(), err
 	}
 
-	return nil
+	return output.String(), nil
 }
 
 func qStatFromExec() (string, error) {
