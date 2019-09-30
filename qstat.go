@@ -49,10 +49,13 @@ func DeleteQueuedJobByID(jobs []string) error {
 	//Cowardly cancel on any other exit mode
 	defer cancel()
 
+	log.Info("Requesting qdel with a list of IDs: ", s)
 	command := exec.CommandContext(ctx, binary, s)
 	command.Env = os.Environ()
+	log.Info(command.String())
 	err = command.Run()
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 
@@ -82,10 +85,13 @@ func DeleteQueuedJobByUsernames(usernames []string) error {
 	//Cowardly cancel on any other exit mode
 	defer cancel()
 
+	log.Info("Running qdel with the following user input ", s)
 	command := exec.CommandContext(ctx, binary, "-u", s)
 	command.Env = os.Environ()
+	log.Info(command.String())
 	err = command.Run()
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 
