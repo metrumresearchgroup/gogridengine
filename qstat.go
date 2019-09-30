@@ -11,24 +11,85 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 )
 
 //GetQstatOutput is used to pull in XML content from either the QSTAT command or generated data for testing purpoes
 func GetQstatOutput() (string, error) {
 
-	var inTestMode bool = false
-
-	if os.Getenv("TEST") == "true" {
-		inTestMode = true
-	}
-
-	if !inTestMode {
+	if os.Getenv("TEST") != "true" {
 		return qStatFromExec()
 	}
 
 	//Fallthrough to generation by object randomly
 	return generatedQstatOputput()
+}
+
+//DeleteQueuedJobByID is used to delete (1 or many) jobs by concatenating their IDs together and passing them to qdel
+func DeleteQueuedJobByID(jobs []string) error {
+
+	//If this is in test mode, just return empty error and exit quickly
+	if os.Getenv("TEST") == "true" {
+		return nil
+	}
+
+	s := strings.Join(jobs, " ")
+
+	//Locate the binary in existing path
+	binary, err := exec.LookPath("qdel")
+
+	if err != nil {
+		log.Error("Couldn't locate binary", err)
+		return errors.New("Couldn't locate the binary")
+	}
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	//Cowardly cancel on any other exit mode
+	defer cancel()
+
+	command := exec.CommandContext(ctx, binary, s)
+	command.Env = os.Environ()
+	err = command.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//DeleteQueuedJobByUsernames is used to delete (1 or many) jobs by concatenating usernames together and feeding them to qdel
+func DeleteQueuedJobByUsernames(usernames []string) error {
+
+	//If this is in test mode, just return empty error and exit quickly
+	if os.Getenv("TEST") == "true" {
+		return nil
+	}
+
+	s := strings.Join(usernames, ",")
+
+	//Locate the binary in existing path
+	binary, err := exec.LookPath("qdel")
+
+	if err != nil {
+		log.Error("Couldn't locate binary", err)
+		return errors.New("Couldn't locate the binary")
+	}
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	//Cowardly cancel on any other exit mode
+	defer cancel()
+
+	command := exec.CommandContext(ctx, binary, "-u", s)
+	command.Env = os.Environ()
+	err = command.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func qStatFromExec() (string, error) {
