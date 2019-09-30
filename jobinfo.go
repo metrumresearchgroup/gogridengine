@@ -10,7 +10,7 @@ const (
 
 //JobInfo is the top level object for the SGE Qstat output
 type JobInfo struct {
-	XMLName     xml.Name   `xml:"job_info" json:"job_info"`
+	XMLName     xml.Name   `xml:"job_info" json:"-"`
 	QueueInfo   QueueInfo  `xml:"queue_info" json:"queue_info"`
 	PendingJobs PendingJob `xml:"job_info,omitempty" json:"pending_jobs"`
 }
