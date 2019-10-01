@@ -55,7 +55,6 @@ func DeleteQueuedJobByID(targets []string) (string, error) {
 	command.Env = os.Environ()
 	output := &bytes.Buffer{}
 	command.Stdout = output
-	log.Info(command.String())
 	err = command.Run()
 	if err != nil {
 		log.Error(output.String())
@@ -94,7 +93,6 @@ func DeleteQueuedJobByUsernames(targets []string) (string, error) {
 	command.Env = os.Environ()
 	output := &bytes.Buffer{}
 	command.Stdout = output
-	log.Info(command.String())
 	err = command.Run()
 	if err != nil {
 		log.Error(output.String())
