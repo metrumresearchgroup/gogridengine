@@ -27,14 +27,14 @@ func GetQstatOutput() (string, error) {
 }
 
 //DeleteQueuedJobByID is used to delete (1 or many) jobs by concatenating their IDs together and passing them to qdel
-func DeleteQueuedJobByID(jobs []string) (string, error) {
+func DeleteQueuedJobByID(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
 	if os.Getenv("TEST") == "true" {
-		return "", nil
+		return "test", nil
 	}
 
-	s := strings.Join(jobs, ",")
+	s := strings.Join(targets, ",")
 	s = strings.TrimSpace(s)
 
 	//Locate the binary in existing path
@@ -66,14 +66,14 @@ func DeleteQueuedJobByID(jobs []string) (string, error) {
 }
 
 //DeleteQueuedJobByUsernames is used to delete (1 or many) jobs by concatenating usernames together and feeding them to qdel
-func DeleteQueuedJobByUsernames(usernames []string) (string, error) {
+func DeleteQueuedJobByUsernames(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
 	if os.Getenv("TEST") == "true" {
-		return "", nil
+		return "test", nil
 	}
 
-	s := strings.Join(usernames, ",")
+	s := strings.Join(targets, ",")
 	s = strings.TrimSpace(s)
 
 	//Locate the binary in existing path
