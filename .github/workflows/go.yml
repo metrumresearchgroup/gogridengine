@@ -26,8 +26,10 @@ jobs:
         
     - name: Test
       run: |
-        export PATH=$PATH:/usr/local/bin
-        echo $PATH
+        echo "#!/bin/bash" >> /usr/local/sbin/qstat
+        echo "exit 0" >> /usr/local/sbin/qstat
+        chmod +x /usr/local/sbin/qstat
+        ln -s /usr/local/sbin/qdel /usr/local/sbin/qstat
         go test -v -covermode=count -coverprofile=general.out
         go test -json > report.json
 
