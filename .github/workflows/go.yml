@@ -25,6 +25,8 @@ jobs:
         fi
         
     - name: Test
+      env:
+        TEST: "true"
       run: |
         go test -v -covermode=count -coverprofile=general.out
         go test -json > report.json
