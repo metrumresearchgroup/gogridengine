@@ -26,10 +26,12 @@ jobs:
         
     - name: Test
       run: |
-        echo "#!/bin/bash" >> /usr/local/sbin/qstat
-        echo "exit 0" >> /usr/local/sbin/qstat
-        chmod +x /usr/local/sbin/qstat
-        ln -s /usr/local/sbin/qdel /usr/local/sbin/qstat
+        export CURDIR = `cwd`
+        echo "#!/bin/bash" >> ${CURDIR}/qstat
+        echo "exit 0" >> ${CURDIR}/qstat
+        chmod +x ${CURDIR}/qstat
+        export PATH=$PATH:${CURDIR}
+        ln -s ${CURDIR}/qdel ${CURDIR}/qstat
         go test -v -covermode=count -coverprofile=general.out
         go test -json > report.json
 
