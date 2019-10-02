@@ -26,12 +26,6 @@ jobs:
         
     - name: Test
       run: |
-        export CURDIR=`pwd`
-        echo "#!/bin/bash" >> ${CURDIR}/qstat
-        echo "exit 0" >> ${CURDIR}/qstat
-        chmod +x ${CURDIR}/qstat
-        export PATH=$PATH:${CURDIR}
-        ln -s ${CURDIR}/qstst ${CURDIR}/qdel
         go test -v -covermode=count -coverprofile=general.out
         go test -json > report.json
 

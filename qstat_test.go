@@ -7,8 +7,6 @@ import (
 	"testing"
 )
 
-const qstatPath string = "/usr/local/bin/"
-
 func TestCLIModeFailureGetQstatOutput(t *testing.T) {
 	//Force to run output and fail
 	os.Setenv("TEST", "false")
@@ -67,6 +65,7 @@ func TestGeneratedOutputGenerateQState(t *testing.T) {
 
 func TestDeleteQueuedJobByID(t *testing.T) {
 	fakeBinary("qdel")
+	updatePathWithCurrentDir()
 	originalValue := os.Getenv("TEST")
 
 	type args struct {
@@ -120,14 +119,14 @@ func fakeBinary(name string) {
 	contents := `#!/bin/bash
 	exit 0`
 
-	err := ioutil.WriteFile(qstatPath+name, []byte(contents), 0755)
+	err := ioutil.WriteFile(name, []byte(contents), 0755)
 	if err != nil {
 		log.Error("Unable to create the file", err)
 	}
 }
 
 func purgeBinary(name string) {
-	err := os.Remove(qstatPath + name)
+	err := os.Remove(name)
 
 	if err != nil {
 		log.Error("Unable to create the file", err)
@@ -178,4 +177,12 @@ func TestDeleteQueuedJobByUsernames(t *testing.T) {
 		})
 	}
 	purgeBinary("qdel")
+}
+
+func getCurrentPath() string {
+	return os.Getenv("PATH")
+}
+
+func updatePathWithCurrentDir() {
+	os.Setenv("PATH", getCurrentPath()+":.")
 }
