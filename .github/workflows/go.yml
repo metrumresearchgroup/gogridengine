@@ -26,7 +26,7 @@ jobs:
         
     - name: Test
       run: |
-        export CURDIR = `cwd`
+        export CURDIR = `pwd`
         echo "#!/bin/bash" >> ${CURDIR}/qstat
         echo "exit 0" >> ${CURDIR}/qstat
         chmod +x ${CURDIR}/qstat
