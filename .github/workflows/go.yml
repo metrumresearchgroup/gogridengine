@@ -26,8 +26,9 @@ jobs:
         
     - name: Test
       env:
-        TEST: "true"
+        PATH: $PATH:/usr/local/bin
       run: |
+        env
         go test -v -covermode=count -coverprofile=general.out
         go test -json > report.json
 
