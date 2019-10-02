@@ -1,6 +1,7 @@
 package gogridengine
 
 import (
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -119,11 +120,18 @@ func fakeBinary(name string) {
 	contents := `#!/bin/bash
 	exit 0`
 
-	ioutil.WriteFile(qstatPath+name, []byte(contents), 0755)
+	err := ioutil.WriteFile(qstatPath+name, []byte(contents), 0755)
+	if err != nil {
+		log.Error("Unable to create the file", err)
+	}
 }
 
 func purgeBinary(name string) {
-	os.Remove(qstatPath + name)
+	err := os.Remove(qstatPath + name)
+
+	if err != nil {
+		log.Error("Unable to create the file", err)
+	}
 }
 
 func TestDeleteQueuedJobByUsernames(t *testing.T) {
