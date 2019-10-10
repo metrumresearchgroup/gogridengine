@@ -140,8 +140,6 @@ func qStatFromExec() (string, error) {
 		return "", err
 	}
 
-	log.Info("We got: ", string(outputBytes))
-
 	return string(outputBytes), nil
 }
 
