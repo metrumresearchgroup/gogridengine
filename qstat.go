@@ -6,13 +6,14 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 //GetQstatOutput is used to pull in XML content from either the QSTAT command or generated data for testing purpoes
@@ -118,7 +119,7 @@ func qStatFromExec() (string, error) {
 	//Cowardly cancel on any other exit mode
 	defer cancel()
 
-	command := exec.CommandContext(ctx, binary, "-F", "-xml")
+	command := exec.CommandContext(ctx, binary, "-u", "\"*\"", "-F", "-xml")
 	command.Env = os.Environ()
 	log.Debug(command.Env)
 	output := &bytes.Buffer{}
