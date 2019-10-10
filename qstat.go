@@ -121,7 +121,8 @@ func qStatFromExec() (string, error) {
 
 	command := exec.CommandContext(ctx, binary, "-u", "\"*\"", "-F", "-xml")
 	command.Env = os.Environ()
-	log.Debug(command.Env)
+	log.Info(command.Env)
+	log.Info(command.String())
 	output := &bytes.Buffer{}
 	command.Stdout = output
 	err = command.Run()
