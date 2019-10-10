@@ -119,18 +119,30 @@ func qStatFromExec() (string, error) {
 	//Cowardly cancel on any other exit mode
 	defer cancel()
 
-	command := exec.CommandContext(ctx, binary, "-u", "\"*\"", "-F", "-xml")
+	arguments := []string{
+		"-u",
+		"*",
+		"-F",
+		"-xml",
+	}
+
+	command := exec.CommandContext(ctx, binary, arguments...)
 	command.Env = os.Environ()
-	log.Info(command.Env)
-	log.Info(command.String())
-	output := &bytes.Buffer{}
-	command.Stdout = output
-	err = command.Run()
+	outputBytes, err := command.Output()
+
 	if err != nil {
+		log.Error("An error occurred during execution of the requested binary: ", err)
 		return "", err
 	}
 
-	return output.String(), nil
+	if err != nil {
+		log.Error("There was an error while attempting to run the ", binary, ": ", err)
+		return "", err
+	}
+
+	log.Info("We got: ", string(outputBytes))
+
+	return string(outputBytes), nil
 }
 
 func generatedQstatOputput() (string, error) {
