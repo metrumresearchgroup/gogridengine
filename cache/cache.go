@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/metrumresearchgroup/gogridengine"
@@ -15,7 +14,7 @@ type empty struct{}
 type Manager interface {
 	Update() gogridengine.JobInfo
 	Get() gogridengine.JobInfo
-	Initialize(ttl time.Duration)
+	Initialize(ttl time.Duration) Cache
 	Stop()
 }
 
@@ -51,7 +50,6 @@ type Poll struct {
 //Cache is the literal cache contents, its mutex, and its channels for manipulation.
 type Cache struct {
 	contents gogridengine.JobInfo //Not externally accessible
-	Mutex    *sync.Mutex
 	Read     Read
 	update   Update
 	write    Write
@@ -60,27 +58,35 @@ type Cache struct {
 }
 
 //Initialize prepares the cache, setups up the managing goroutines and builds the channels
-func (c Cache) Initialize(ttl time.Duration) {
+func Initialize(ttl time.Duration) Cache {
+
+	var c Cache
+
+	readRequest := make(chan empty, 10)
+	readResponse := make(chan gogridengine.JobInfo)
+	writeRequest := make(chan gogridengine.JobInfo)
+	updateRequest := make(chan empty, 10)
+	updateResponse := make(chan gogridengine.JobInfo, 10)
 
 	//First Build the Communication structs
 	c.write = Write{
-		Request: make(chan gogridengine.JobInfo),
+		Request: writeRequest,
 		Context: context.Background(),
 	}
 
 	c.write.Context, c.write.Cancel = context.WithCancel(c.write.Context)
 
 	c.Read = Read{
-		Request:  make(chan empty),
-		Response: make(chan gogridengine.JobInfo),
+		Request:  readRequest,
+		Response: readResponse,
 		Context:  context.Background(),
 	}
 
 	c.Read.Context, c.Read.Cancel = context.WithCancel(c.Read.Context)
 
 	c.update = Update{
-		Request:  make(chan empty),
-		Response: make(chan gogridengine.JobInfo),
+		Request:  updateRequest,
+		Response: updateResponse,
 		Context:  context.Background(),
 	}
 
@@ -113,9 +119,8 @@ func (c Cache) Initialize(ttl time.Duration) {
 		for {
 			select {
 			case info := <-write.Request:
-				c.Mutex.Lock()
+				log.Info("Re populating Cache on schedule")
 				c.contents = info
-				c.Mutex.Unlock()
 			case <-write.Context.Done():
 				close(write.Request)
 				return
@@ -170,11 +175,36 @@ func (c Cache) Initialize(ttl time.Duration) {
 		}
 	}(c.write, c.poll)
 
+	//Let's give the poll and write systems time to initialize
+	time.Sleep(50 * time.Millisecond)
+
+	return c
 }
 
 //Get is the mechanism by which external parties access the cache
 func (c Cache) Get() gogridengine.JobInfo {
-	return c.Request(c.Read.Request, c.Read.Response)
+	e := empty{}
+
+	c.Read.Request <- e
+
+	ctx := context.Background()
+	ctx, err := context.WithTimeout(ctx, 3*time.Second)
+
+	if err != nil {
+		log.Error("Unable to create deadlined context for some reason")
+		//Fallback to normal background context
+		ctx = context.Background()
+	}
+
+	for {
+		select {
+		case ji := <-c.Read.Response:
+			return ji
+		case <-ctx.Done():
+			log.Error("Request to cache has failed")
+			return gogridengine.JobInfo{}
+		}
+	}
 }
 
 //Update is a way of requesting requerying of the source data, population of the cache and accessing that data.
