@@ -62,11 +62,11 @@ func Initialize(ttl time.Duration) Cache {
 
 	var c Cache
 
-	readRequest := make(chan empty, 10)
+	readRequest := make(chan empty)
 	readResponse := make(chan gogridengine.JobInfo)
 	writeRequest := make(chan gogridengine.JobInfo)
-	updateRequest := make(chan empty, 10)
-	updateResponse := make(chan gogridengine.JobInfo, 10)
+	updateRequest := make(chan empty)
+	updateResponse := make(chan gogridengine.JobInfo)
 
 	//First Build the Communication structs
 	c.write = Write{
@@ -107,8 +107,6 @@ func Initialize(ttl time.Duration) Cache {
 			case <-read.Request:
 				read.Response <- c.contents
 			case <-read.Context.Done():
-				close(read.Request)
-				close(read.Request)
 				return
 			}
 		}
@@ -122,7 +120,6 @@ func Initialize(ttl time.Duration) Cache {
 				log.Info("Re populating Cache on schedule")
 				c.contents = info
 			case <-write.Context.Done():
-				close(write.Request)
 				return
 			}
 		}
@@ -143,8 +140,6 @@ func Initialize(ttl time.Duration) Cache {
 
 				update.Response <- ji
 			case <-update.Context.Done():
-				close(update.Request)
-				close(update.Response)
 				return
 			}
 		}
