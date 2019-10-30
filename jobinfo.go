@@ -27,3 +27,22 @@ func (q JobInfo) GetXML() (string, error) {
 
 	return formatted, nil
 }
+
+//GetJobInfo provides a way of requesting the marshalled content directly without having to intervene
+func GetJobInfo() (JobInfo, error) {
+	content, err := GetQstatOutput()
+
+	if err != nil {
+		return JobInfo{}, err
+	}
+
+	var ji JobInfo
+
+	err = xml.Unmarshal([]byte(content), &ji)
+
+	if err != nil {
+		return JobInfo{}, err
+	}
+
+	return ji, nil
+}
