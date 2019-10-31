@@ -43,14 +43,11 @@ func TestCacheCancel(t *testing.T) {
 	//Enable generated content
 	os.Setenv("TEST", "true")
 
-	c := Initialize(5 * time.Second)
+	c := Initialize(1 * time.Second)
 
 	c.Stop()
 
 	time.Sleep(10 * time.Millisecond)
 
-	cap := cap(c.Read.Request)
-
-	assert.NotEqual(t, cap, 0)
-
+	assert.False(t, c.Active())
 }

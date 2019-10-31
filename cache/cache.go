@@ -20,6 +20,7 @@ type Manager interface {
 
 //Read contains the communication channels and the context for interacting with the managing goroutine
 type Read struct {
+	Active   bool
 	Request  chan empty
 	Response chan gogridengine.JobInfo
 	Context  context.Context
@@ -28,6 +29,7 @@ type Read struct {
 
 //Write contains the communication channel and the context for interacting with the managing goroutine
 type Write struct {
+	Active  bool
 	Request chan gogridengine.JobInfo
 	Context context.Context
 	Cancel  context.CancelFunc
@@ -35,6 +37,7 @@ type Write struct {
 
 //Update contains the communication channels and the context for interacting with the managing goroutine
 type Update struct {
+	Active   bool
 	Request  chan empty
 	Response chan gogridengine.JobInfo
 	Context  context.Context
@@ -43,6 +46,7 @@ type Update struct {
 
 //Poll is a struct used for interacting with the cache poller
 type Poll struct {
+	Active  bool
 	Context context.Context
 	Cancel  context.CancelFunc
 }
@@ -55,13 +59,14 @@ type Cache struct {
 	write    Write
 	poll     Poll
 	Context  context.Context
+	interval time.Duration
 }
 
 //Initialize prepares the cache, setups up the managing goroutines and builds the channels
-func Initialize(ttl time.Duration) Cache {
+func Initialize(ttl time.Duration) *Cache {
 
 	var c Cache
-
+	c.interval = ttl
 	readRequest := make(chan empty)
 	readResponse := make(chan gogridengine.JobInfo)
 	writeRequest := make(chan gogridengine.JobInfo)
@@ -70,6 +75,7 @@ func Initialize(ttl time.Duration) Cache {
 
 	//First Build the Communication structs
 	c.write = Write{
+		Active:  true,
 		Request: writeRequest,
 		Context: context.Background(),
 	}
@@ -77,6 +83,7 @@ func Initialize(ttl time.Duration) Cache {
 	c.write.Context, c.write.Cancel = context.WithCancel(c.write.Context)
 
 	c.Read = Read{
+		Active:   true,
 		Request:  readRequest,
 		Response: readResponse,
 		Context:  context.Background(),
@@ -85,6 +92,7 @@ func Initialize(ttl time.Duration) Cache {
 	c.Read.Context, c.Read.Cancel = context.WithCancel(c.Read.Context)
 
 	c.update = Update{
+		Active:   true,
 		Request:  updateRequest,
 		Response: updateResponse,
 		Context:  context.Background(),
@@ -93,6 +101,7 @@ func Initialize(ttl time.Duration) Cache {
 	c.update.Context, c.update.Cancel = context.WithCancel(c.update.Context)
 
 	c.poll = Poll{
+		Active:  true,
 		Context: context.Background(),
 	}
 
@@ -107,6 +116,8 @@ func Initialize(ttl time.Duration) Cache {
 			case <-read.Request:
 				read.Response <- c.contents
 			case <-read.Context.Done():
+				log.Info("Cleaning up read channels")
+				c.Read.Active = false
 				return
 			}
 		}
@@ -120,6 +131,8 @@ func Initialize(ttl time.Duration) Cache {
 				log.Info("Re populating Cache on schedule")
 				c.contents = info
 			case <-write.Context.Done():
+				log.Info("Cleaning up write channels")
+				c.write.Active = false
 				return
 			}
 		}
@@ -129,8 +142,10 @@ func Initialize(ttl time.Duration) Cache {
 	go func(update Update) {
 		for {
 			select {
-			case <-update.Request:
+			case m := <-update.Request:
+				log.Info("We received ", m)
 				//We need to get the JobInfo contents from
+				log.Info("Updating the cache")
 				ji, err := gogridengine.GetJobInfo()
 
 				if err != nil {
@@ -140,6 +155,8 @@ func Initialize(ttl time.Duration) Cache {
 
 				update.Response <- ji
 			case <-update.Context.Done():
+				log.Info("Cleaning up update channels")
+				c.update.Active = false
 				return
 			}
 		}
@@ -161,6 +178,8 @@ func Initialize(ttl time.Duration) Cache {
 			//Look for termination
 			select {
 			case <-poll.Context.Done():
+				log.Info("Terminating poller")
+				c.poll.Active = false
 				return
 			default:
 				//Do nothing
@@ -173,23 +192,19 @@ func Initialize(ttl time.Duration) Cache {
 	//Let's give the poll and write systems time to initialize
 	time.Sleep(50 * time.Millisecond)
 
-	return c
+	return &c
 }
 
 //Get is the mechanism by which external parties access the cache
-func (c Cache) Get() gogridengine.JobInfo {
+func (c *Cache) Get() gogridengine.JobInfo {
 	e := empty{}
 
-	c.Read.Request <- e
-
 	ctx := context.Background()
-	ctx, err := context.WithTimeout(ctx, 3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 
-	if err != nil {
-		log.Error("Unable to create deadlined context for some reason")
-		//Fallback to normal background context
-		ctx = context.Background()
-	}
+	defer cancel()
+
+	c.Read.Request <- e
 
 	for {
 		select {
@@ -203,24 +218,20 @@ func (c Cache) Get() gogridengine.JobInfo {
 }
 
 //Update is a way of requesting requerying of the source data, population of the cache and accessing that data.
-func (c Cache) Update() gogridengine.JobInfo {
+func (c *Cache) Update() gogridengine.JobInfo {
 	return c.Request(c.update.Request, c.update.Response)
 }
 
 //Request is a uniform method for performing similar workloads dealing with request / response channels
-func (c Cache) Request(request chan empty, response chan gogridengine.JobInfo) gogridengine.JobInfo {
+func (c *Cache) Request(request chan empty, response chan gogridengine.JobInfo) gogridengine.JobInfo {
 	e := empty{}
 
-	request <- e
-
 	ctx := context.Background()
-	ctx, err := context.WithTimeout(ctx, 3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 
-	if err != nil {
-		log.Error("Unable to create deadlined context for some reason")
-		//Fallback to normal background context
-		ctx = context.Background()
-	}
+	defer cancel()
+
+	request <- e
 
 	for {
 		select {
@@ -234,9 +245,24 @@ func (c Cache) Request(request chan empty, response chan gogridengine.JobInfo) g
 }
 
 //Stop issues cancellation requests to the communication contexts attached to all structs used for interfacing with the cache.
-func (c Cache) Stop() {
-	c.Read.Cancel()
-	c.write.Cancel()
-	c.update.Cancel()
+func (c *Cache) Stop() {
 	c.poll.Cancel()
+
+	//Allow the manager to issue through a full scan and then a few ms.
+	time.Sleep(time.Duration(2 * c.interval))
+
+	c.Read.Cancel()
+	c.update.Cancel()
+	c.write.Cancel()
+
+	c.Read.Active = false
+	c.write.Active = false
+	c.update.Active = false
+	c.poll.Active = false
+
+}
+
+//Active returns whether or not all threads have cleaned up for the manager
+func (c *Cache) Active() bool {
+	return c.Read.Active && c.write.Active && c.update.Active && c.poll.Active
 }
