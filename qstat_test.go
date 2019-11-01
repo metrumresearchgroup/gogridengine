@@ -115,9 +115,10 @@ func TestDeleteQueuedJobByID(t *testing.T) {
 	purgeBinary("qdel")
 }
 
-//Create an executable qstat file that will exit ok
+//Create an executable qstat file that will exit ok. Will also print the raw input just so we can verify it
 func fakeBinary(name string) {
 	contents := `#!/bin/bash
+	echo $0 $@
 	exit 0`
 
 	err := ioutil.WriteFile(name, []byte(contents), 0755)

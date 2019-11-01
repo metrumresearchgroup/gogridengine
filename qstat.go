@@ -107,9 +107,6 @@ func DeleteQueuedJobByUsernames(targets []string) (string, error) {
 //Filters are meant to be in the form of [key] being being a switch and the value to be the anything passed to the option
 func qStatFromExec(filters map[string]string) (string, error) {
 
-	var arguments []string
-	userFiltered := false
-
 	//Locate the binary in existing path
 	binary, err := exec.LookPath("qstat")
 
@@ -122,6 +119,29 @@ func qStatFromExec(filters map[string]string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	//Cowardly cancel on any other exit mode
 	defer cancel()
+
+	arguments := buildQstatArgumentList(filters)
+
+	command := exec.CommandContext(ctx, binary, arguments...)
+	command.Env = os.Environ()
+	outputBytes, err := command.Output()
+
+	if err != nil {
+		log.Error("An error occurred during execution of the requested binary: ", err)
+		return "", err
+	}
+
+	if err != nil {
+		log.Error("There was an error while attempting to run the ", binary, ": ", err)
+		return "", err
+	}
+
+	return string(outputBytes), nil
+}
+
+func buildQstatArgumentList(filters map[string]string) []string {
+	var arguments []string
+	userFiltered := false
 
 	//Let's iterate over all the provided kvps
 	for k, v := range filters {
@@ -150,21 +170,7 @@ func qStatFromExec(filters map[string]string) (string, error) {
 	//Always add the strictest requirements last (IE the Full output and XML Compoenent)
 	arguments = append(arguments, "-F", "-xml")
 
-	command := exec.CommandContext(ctx, binary, arguments...)
-	command.Env = os.Environ()
-	outputBytes, err := command.Output()
-
-	if err != nil {
-		log.Error("An error occurred during execution of the requested binary: ", err)
-		return "", err
-	}
-
-	if err != nil {
-		log.Error("There was an error while attempting to run the ", binary, ": ", err)
-		return "", err
-	}
-
-	return string(outputBytes), nil
+	return arguments
 }
 
 func generatedQstatOputput() (string, error) {

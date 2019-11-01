@@ -4,6 +4,8 @@ import (
 	"encoding/xml"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDeSerializeXml(t *testing.T) {
@@ -118,4 +120,72 @@ func TestIsJobRunning(t *testing.T) {
 
 func TestGetJobs(t *testing.T) {
 	os.Setenv(environmentPrefix+"TEST", "true")
+
+	jobs, err := GetJobs()
+	runningCount := 0
+	pendingCount := 0
+
+	//Definitely should not fail in test evaluation mode
+	if err != nil {
+		t.Error(err)
+	}
+
+	//Our defined structue is 3 running jobs and 1 pending jobs
+
+	assert.Equal(t, 4, len(jobs))
+
+	for _, v := range jobs {
+		if v.State == "r" {
+			runningCount++
+			continue
+		}
+		pendingCount++
+	}
+
+	assert.Equal(t, 3, runningCount)
+	assert.Equal(t, 1, pendingCount)
+}
+
+func TestJobFilters(t *testing.T) {
+	fakeBinary("qstat")
+	updatePathWithCurrentDir()
+
+	//Let's first Verify that passing parameters gets to the argument list correctly
+
+	//Verify running empty processes fine.
+	_, err := GetQstatOutput(make(map[string]string))
+
+	//Exec component should still process with the fake binary
+	assert.Nil(t, err)
+
+	filters := make(map[string]string)
+
+	filters["-u"] = "darrellb"
+	filters["-s"] = "r"
+
+	arguments := buildQstatArgumentList(filters)
+
+	assert.Equal(t, "-u", arguments[0])
+	assert.Equal(t, "darrellb", arguments[1])
+
+	assert.Equal(t, "-s", arguments[2])
+	assert.Equal(t, "r", arguments[3])
+
+	assert.True(t, len(arguments) == (2*len(filters))+2)
+
+	//Now, let's verify the argument list for an unspecified filter
+	filters = make(map[string]string)
+
+	expectedArgs := []string{
+		"-u",
+		"*",
+		"-F",
+		"-xml",
+	}
+
+	generatedArgs := buildQstatArgumentList(filters)
+
+	assert.Equal(t, expectedArgs, generatedArgs)
+
+	purgeBinary("qstat")
 }

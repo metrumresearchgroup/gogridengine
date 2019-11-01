@@ -33,7 +33,7 @@ func IsJobRunning(job Job) int {
 }
 
 //GetJobs returns a slice of only jobs from both scheduled and unscheduled queues
-func GetJobs() ([]Job, error) {
+func GetJobs() (JobList, error) {
 	var jobs []Job
 
 	ji, err := GetJobInfo()
