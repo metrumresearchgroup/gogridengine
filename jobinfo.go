@@ -8,6 +8,10 @@ const (
 	header = "<?xml version='1.0'?>"
 )
 
+const (
+	environmentPrefix string = "GOGRIDENGINE_"
+)
+
 //JobInfo is the top level object for the SGE Qstat output
 type JobInfo struct {
 	XMLName     xml.Name   `xml:"job_info" json:"-"`
@@ -26,4 +30,22 @@ func (q JobInfo) GetXML() (string, error) {
 	formatted := header + string(output)
 
 	return formatted, nil
+}
+
+//GetJobInfo returns the go struct of the qstat output
+func GetJobInfo() (JobInfo, error) {
+	j, err := GetQstatOutput(make(map[string]string))
+	if err != nil {
+		return JobInfo{}, err
+	}
+
+	var ji JobInfo
+
+	err = xml.Unmarshal([]byte(j), &ji)
+
+	if err != nil {
+		return JobInfo{}, err
+	}
+
+	return ji, nil
 }

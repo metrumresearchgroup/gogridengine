@@ -89,6 +89,10 @@ func TestDeSerializeSGEQStat(t *testing.T) {
 		t.Errorf("Failed to parse and extract in order")
 	}
 
+	if len(info.QueueInfo.Queues[0].JobList) == 0 {
+		t.Errorf("Failed to parse job details")
+	}
+
 	if info.QueueInfo.Queues[0].JobList[0].JobOwner != "user" {
 		t.Errorf("Looks like we failed to serialize all the way down")
 	}
@@ -206,7 +210,7 @@ func TestDeSerializePendingQStat(t *testing.T) {
 
 func TestJobInfo_GetXML(t *testing.T) {
 
-	os.Setenv("TEST", "true")
+	os.Setenv(environmentPrefix+"TEST", "true")
 	type fields struct {
 		XMLName   xml.Name
 		QueueInfo QueueInfo
@@ -244,7 +248,7 @@ func TestJobInfo_GetXML(t *testing.T) {
 									Value: "1.4G",
 								},
 							},
-							JobList: []JobList{
+							JobList: []Job{
 								{
 									XMLName: xml.Name{
 										Local: "job_list",

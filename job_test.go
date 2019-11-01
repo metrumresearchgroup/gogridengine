@@ -2,6 +2,7 @@ package gogridengine
 
 import (
 	"encoding/xml"
+	"os"
 	"testing"
 )
 
@@ -17,7 +18,7 @@ func TestDeSerializeXml(t *testing.T) {
 	<slots>1</slots>
 </job_list>`
 
-	var t2 JobList
+	var t2 Job
 	xml.Unmarshal([]byte(source), &t2)
 
 	if t2.JBJobNumber != 4291 {
@@ -71,8 +72,8 @@ func TestIsJobRunning(t *testing.T) {
   <slots>1</slots>
 </job_list>`
 
-	var pl JobList
-	var rl JobList
+	var pl Job
+	var rl Job
 	err := xml.Unmarshal([]byte(pending), &pl)
 	if err != nil {
 		t.Errorf("Unable to unmarshall xml")
@@ -84,7 +85,7 @@ func TestIsJobRunning(t *testing.T) {
 	}
 
 	type args struct {
-		job JobList
+		job Job
 	}
 	tests := []struct {
 		name string
@@ -113,4 +114,8 @@ func TestIsJobRunning(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetJobs(t *testing.T) {
+	os.Setenv(environmentPrefix+"TEST", "true")
 }

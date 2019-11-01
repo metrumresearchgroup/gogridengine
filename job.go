@@ -1,10 +1,14 @@
 package gogridengine
 
-import ()
-import "encoding/xml"
+import (
+	"encoding/xml"
+)
 
-//JobList is the Sun Grid Engine XML Definition for a job running on a specific host, its details and current status
-type JobList struct {
+//JobList is a slice of Jobs that is filterable and otherwise actionable via receiver.
+type JobList []Job
+
+//Job is the Sun Grid Engine XML Definition for a job running on a specific host, its details and current status
+type Job struct {
 	//Because this is a node, we still need the XMLName identifier
 	XMLName        xml.Name `xml:"job_list" json:"-"`
 	StateAttribute string   `xml:"state,attr" json:"state_attribute_text"`
@@ -19,11 +23,38 @@ type JobList struct {
 }
 
 //IsJobRunning returns a int (1 - running) (0 - not)
-func IsJobRunning(job JobList) int {
+func IsJobRunning(job Job) int {
 
 	if job.State == "r" {
 		return 1
 	}
 
 	return 0
+}
+
+//GetJobs returns a slice of only jobs from both scheduled and unscheduled queues
+func GetJobs() ([]Job, error) {
+	var jobs []Job
+
+	ji, err := GetJobInfo()
+
+	if err != nil {
+		return []Job{}, err
+	}
+
+	//Add running jobs to the slice first
+	for _, q := range ji.QueueInfo.Queues {
+		jobs = append(jobs, q.JobList...)
+	}
+
+	//Add pending jobs
+	jobs = append(jobs, ji.PendingJobs.JobList...)
+
+	return jobs, nil
+}
+
+//Filter allows for the passage of any function taking a JobList and Filtering its contents down.
+//Should be usable in fluent fashion as long as JobList is being returned
+func (jl JobList) Filter(filter func(jobs JobList) JobList) JobList {
+	return filter(jl)
 }
