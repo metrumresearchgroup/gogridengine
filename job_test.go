@@ -147,8 +147,7 @@ func TestGetJobs(t *testing.T) {
 }
 
 func TestJobFilters(t *testing.T) {
-	fakeBinary("qstat")
-	updatePathWithCurrentDir()
+	os.Setenv(environmentPrefix+"TEST", "true")
 
 	//Let's first Verify that passing parameters gets to the argument list correctly
 
@@ -186,6 +185,4 @@ func TestJobFilters(t *testing.T) {
 	generatedArgs := buildQstatArgumentList(filters)
 
 	assert.Equal(t, expectedArgs, generatedArgs)
-
-	purgeBinary("qstat")
 }

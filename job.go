@@ -56,5 +56,10 @@ func GetJobs() (JobList, error) {
 //Filter allows for the passage of any function taking a JobList and Filtering its contents down.
 //Should be usable in fluent fashion as long as JobList is being returned
 func (jl JobList) Filter(filter func(jobs JobList) JobList) JobList {
-	return filter(jl)
+	return JobFilter(jl, filter)
+}
+
+//JobFilter is a non-receiver approach to filtering the jobs. Used under the hood to allow uniform execution
+func JobFilter(jobs JobList, filterfunc func(j JobList) JobList) JobList {
+	return filterfunc(jobs)
 }
