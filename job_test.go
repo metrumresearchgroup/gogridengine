@@ -170,6 +170,30 @@ func TestJobFilters(t *testing.T) {
 	assert.Contains(t, arguments, "-s")
 	assert.Contains(t, arguments, "r")
 
+	//Get Key of User Switch
+	var userIndex int
+
+	for key, value := range arguments {
+		if value == "-u" {
+			userIndex = key
+		}
+	}
+
+	assert.Equal(t, "darrellb", arguments[userIndex+1])
+
+	assert.True(t, len(arguments) == (2*len(filters))+2)
+
+	//Get State Index
+	var stateIndex int
+
+	for key, value := range arguments {
+		if value == "-s" {
+			stateIndex = key
+		}
+	}
+
+	assert.Equal(t, "r", arguments[stateIndex+1])
+
 	assert.True(t, len(arguments) == (2*len(filters))+2)
 
 	//Now, let's verify the argument list for an unspecified filter
