@@ -205,7 +205,112 @@ func TestNewSubmitTimeBetweenFilter(t *testing.T) {
 	endTime, _ := time.Parse(ISO8601FMT, end)
 
 	//Show me jobs with a submit time earlier than the targetTime.
-	jl = jl.Filter(NewSubmitTimeBetweenFilter(startTime, endTime))
+	jl = jl.Filter(NewBetweenSubmitTimeFilter(startTime, endTime))
+
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 2)
+	assert.Equal(t, "TheRightOne", jl[0].JobName)
+
+}
+
+func TestNewBeforeStartTimeFilter(t *testing.T) {
+	jl := gogridengine.JobList{
+		{
+			JobName:   "TheRightOne",
+			StartTime: "2019-09-15T15:26:36",
+		},
+		{
+			JobName:   "TheWrongOne",
+			StartTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:   "Invalid",
+			StartTime: "NotEvenAValidTime",
+		},
+	}
+
+	//Two days in the future
+	target := "2019-09-17T15:26:36"
+	targetTime, _ := time.Parse(ISO8601FMT, target)
+
+	//Show me jobs with a submit time earlier than the targetTime.
+	jl = jl.Filter(NewBeforeStartTimeFilter(targetTime))
+
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 1)
+	assert.Equal(t, "TheRightOne", jl[0].JobName)
+}
+
+func TestNewAfterStartTimeFilter(t *testing.T) {
+
+	jl := gogridengine.JobList{
+		{
+			JobName:   "TheWrongOne",
+			StartTime: "2019-09-15T15:26:36",
+		},
+		{
+			JobName:   "TheRightOne",
+			StartTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:   "TheRightOne",
+			StartTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:   "TheRightOne",
+			StartTime: "2019-09-21T15:26:37",
+		},
+		{
+			JobName:   "Invalid",
+			StartTime: "ImNotEvenAValidTime",
+		},
+	}
+
+	//Two days in the future
+	target := "2019-09-17T15:26:36"
+	targetTime, _ := time.Parse(ISO8601FMT, target)
+
+	//Show me jobs with a submit time earlier than the targetTime.
+	jl = jl.Filter(NewAfterStartTimeFilter(targetTime))
+
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 3)
+	assert.Equal(t, "TheRightOne", jl[0].JobName)
+}
+
+func TestNewStartTimeBetweenFilter(t *testing.T) {
+	jl := gogridengine.JobList{
+		{
+			JobName:   "TheWrongOne",
+			StartTime: "2019-09-15T15:26:36",
+		},
+		{
+			JobName:   "TheRightOne",
+			StartTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:   "SecondRightOne",
+			StartTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:   "OutofSpec",
+			StartTime: "2019-09-21T15:26:37",
+		},
+		{
+			JobName:   "Invalid",
+			StartTime: "ImNotEvenAValidTime",
+		},
+	}
+
+	//Two days in the future
+	start := "2019-09-21T15:26:35"
+	startTime, _ := time.Parse(ISO8601FMT, start)
+
+	end := "2019-09-21T15:26:37"
+	endTime, _ := time.Parse(ISO8601FMT, end)
+
+	//Show me jobs with a submit time earlier than the targetTime.
+	jl = jl.Filter(NewBetweenStartTimeFilter(startTime, endTime))
 
 	assert.NotEmpty(t, jl)
 	assert.Len(t, jl, 2)
