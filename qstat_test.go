@@ -195,9 +195,10 @@ func TestQSTATWithFakeBinary(t *testing.T) {
 	updatePathWithCurrentDir()
 
 	os.Unsetenv("TEST")
-	output, _ := GetQstatOutput(make(map[string]string))
+	output, err := GetQstatOutput(make(map[string]string))
 
 	assert.NotEmpty(t, output)
+	assert.Nil(t, err)
 
 	purgeBinary("qstat")
 }
