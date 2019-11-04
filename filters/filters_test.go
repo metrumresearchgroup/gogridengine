@@ -111,7 +111,16 @@ func TestNewStrictStateFilter(t *testing.T) {
 func TestNewBeforeSubmitTimeFilter(t *testing.T) {
 	jl := gogridengine.JobList{
 		{
+			JobName:       "TheRightOne",
 			SubmittedTime: "2019-09-15T15:26:36",
+		},
+		{
+			JobName:       "TheWrongOne",
+			SubmittedTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:       "Invalid",
+			SubmittedTime: "NotEvenAValidTime",
 		},
 	}
 
@@ -119,8 +128,87 @@ func TestNewBeforeSubmitTimeFilter(t *testing.T) {
 	target := "2019-09-17T15:26:36"
 	targetTime, _ := time.Parse(ISO8601FMT, target)
 
+	//Show me jobs with a submit time earlier than the targetTime.
 	jl = jl.Filter(NewBeforeSubmitTimeFilter(targetTime))
 
 	assert.NotEmpty(t, jl)
 	assert.Len(t, jl, 1)
+	assert.Equal(t, "TheRightOne", jl[0].JobName)
+}
+
+func TestNewAfterSubmitTimeFilter(t *testing.T) {
+
+	jl := gogridengine.JobList{
+		{
+			JobName:       "TheWrongOne",
+			SubmittedTime: "2019-09-15T15:26:36",
+		},
+		{
+			JobName:       "TheRightOne",
+			SubmittedTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:       "TheRightOne",
+			SubmittedTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:       "TheRightOne",
+			SubmittedTime: "2019-09-21T15:26:37",
+		},
+		{
+			JobName:       "Invalid",
+			SubmittedTime: "ImNotEvenAValidTime",
+		},
+	}
+
+	//Two days in the future
+	target := "2019-09-17T15:26:36"
+	targetTime, _ := time.Parse(ISO8601FMT, target)
+
+	//Show me jobs with a submit time earlier than the targetTime.
+	jl = jl.Filter(NewAfterSubmitTimeFilter(targetTime))
+
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 3)
+	assert.Equal(t, "TheRightOne", jl[0].JobName)
+}
+
+func TestNewSubmitTimeBetweenFilter(t *testing.T) {
+	jl := gogridengine.JobList{
+		{
+			JobName:       "TheWrongOne",
+			SubmittedTime: "2019-09-15T15:26:36",
+		},
+		{
+			JobName:       "TheRightOne",
+			SubmittedTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:       "SecondRightOne",
+			SubmittedTime: "2019-09-21T15:26:36",
+		},
+		{
+			JobName:       "OutofSpec",
+			SubmittedTime: "2019-09-21T15:26:37",
+		},
+		{
+			JobName:       "Invalid",
+			SubmittedTime: "ImNotEvenAValidTime",
+		},
+	}
+
+	//Two days in the future
+	start := "2019-09-21T15:26:35"
+	startTime, _ := time.Parse(ISO8601FMT, start)
+
+	end := "2019-09-21T15:26:37"
+	endTime, _ := time.Parse(ISO8601FMT, end)
+
+	//Show me jobs with a submit time earlier than the targetTime.
+	jl = jl.Filter(NewSubmitTimeBetweenFilter(startTime, endTime))
+
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 2)
+	assert.Equal(t, "TheRightOne", jl[0].JobName)
+
 }
