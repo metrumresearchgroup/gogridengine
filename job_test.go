@@ -196,4 +196,12 @@ func TestGetJobsWithFilter(t *testing.T) {
 	assert.Len(t, jobs, 3)
 
 	os.Unsetenv(environmentPrefix + "TEST")
+
+	//Test Negative Path
+	jobs, err := GetJobsWithFilter(func(j Job) bool {
+		return j.State == "r"
+	})
+
+	assert.NotNil(t, err)
+	assert.Empty(t, jobs)
 }
