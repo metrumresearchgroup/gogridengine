@@ -2,6 +2,7 @@ package filters
 
 import (
 	"testing"
+	"time"
 
 	"github.com/metrumresearchgroup/gogridengine"
 	"github.com/stretchr/testify/assert"
@@ -105,4 +106,21 @@ func TestNewStrictStateFilter(t *testing.T) {
 	assert.NotEmpty(t, r2)
 	assert.Len(t, r2, 1)
 
+}
+
+func TestNewBeforeSubmitTimeFilter(t *testing.T) {
+	jl := gogridengine.JobList{
+		{
+			SubmittedTime: "2019-09-15T15:26:36",
+		},
+	}
+
+	//Two days in the future
+	target := "2019-09-17T15:26:36"
+	targetTime, _ := time.Parse(ISO8601FMT, target)
+
+	jl = jl.Filter(NewBeforeSubmitTimeFilter(targetTime))
+
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 1)
 }

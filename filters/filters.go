@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/metrumresearchgroup/gogridengine"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
 	//ISO8601FMT is a constant format used for parsing ISO 8601 compliant datetimes
-	ISO8601FMT string = "2006-01-02T15:04:05-0700"
+	ISO8601FMT string = "2006-01-02T15:04:05"
 )
 
 //NewUsernameFilter returns a filter function for specifying an owner to filter a JobList Down
@@ -39,6 +40,7 @@ func NewBeforeSubmitTimeFilter(t time.Time) func(job gogridengine.Job) bool {
 		jobTime, err := time.Parse(ISO8601FMT, job.SubmittedTime)
 		if err != nil {
 			//If we can't parse the value, discard the job
+			log.Error("Failed parsing the time content: ", err)
 			return false
 		}
 
@@ -56,5 +58,18 @@ func NewAfterSubmitTimeFilter(t time.Time) func(job gogridengine.Job) bool {
 		}
 
 		return jobTime.After(t)
+	}
+}
+
+//NewSubmitTimeBetweenFilter allows you to provide a start and end time to return jobs whos submit time falls within that range
+func NewSubmitTimeBetweenFilter(start time.Time, end time.Time) func(job gogridengine.Job) bool {
+	return func(job gogridengine.Job) bool {
+		jobTime, err := time.Parse(ISO8601FMT, job.SubmittedTime)
+		if err != nil {
+			//If we can't parse the value, discard the job
+			return false
+		}
+
+		return jobTime.After(start) && jobTime.Before(end)
 	}
 }
