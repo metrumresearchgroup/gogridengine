@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCLIModeFailureGetQstatOutput(t *testing.T) {
@@ -187,4 +188,16 @@ func getCurrentPath() string {
 
 func updatePathWithCurrentDir() {
 	os.Setenv("PATH", getCurrentPath()+":.")
+}
+
+func TestQSTATWithFakeBinary(t *testing.T) {
+	fakeBinary("qstat")
+	updatePathWithCurrentDir()
+
+	os.Unsetenv("TEST")
+	output, _ := GetQstatOutput(make(map[string]string))
+
+	assert.NotEmpty(t, output)
+
+	purgeBinary("qstat")
 }
