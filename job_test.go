@@ -229,3 +229,24 @@ func TestGetJobsWithFilter(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Empty(t, jobs)
 }
+
+func TestJobList_Sort(t *testing.T) {
+	jl := JobList{
+		{
+			JBJobNumber: 1,
+		},
+		{
+			JBJobNumber: 3,
+		},
+		{
+			JBJobNumber: 2,
+		},
+	}
+
+	jl = jl.Sort(func(i, j int) bool {
+		return jl[i].JBJobNumber < jl[j].JBJobNumber
+	})
+
+	assert.Len(t, jl, 3)
+	assert.Equal(t, Job{JBJobNumber: 2}, jl[1])
+}

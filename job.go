@@ -2,6 +2,7 @@ package gogridengine
 
 import (
 	"encoding/xml"
+	"sort"
 )
 
 //JobList is a slice of Jobs that is filterable and otherwise actionable via receiver.
@@ -75,4 +76,11 @@ func (jl JobList) Filter(filter func(j Job) bool) JobList {
 	}
 
 	return jobs
+}
+
+//Sort allows you to provide your own Less function to handle sorting the list directly
+func (jl JobList) Sort(sorter func(i, j int) bool) JobList {
+	sort.Slice(jl[:], sorter)
+
+	return jl
 }
