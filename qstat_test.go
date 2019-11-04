@@ -201,4 +201,5 @@ func TestQSTATWithFakeBinary(t *testing.T) {
 	assert.Nil(t, err)
 
 	purgeBinary("qstat")
+	os.Setenv("TEST", "true")
 }

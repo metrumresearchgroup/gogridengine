@@ -53,6 +53,16 @@ func GetJobs() (JobList, error) {
 	return jobs, nil
 }
 
+//GetJobsWithFilter allows you to specify a filter at the time of retrieving the JobList
+func GetJobsWithFilter(filterfunc func(j Job) bool) (JobList, error) {
+	jobs, err := GetJobs()
+	if err != nil {
+		return JobList{}, err
+	}
+
+	return jobs.Filter(filterfunc), nil
+}
+
 //Filter allows for the passage of any function taking a JobList and Filtering its contents down.
 //Should be usable in fluent fashion as long as JobList is being returned
 func (jl JobList) Filter(filter func(j Job) bool) JobList {

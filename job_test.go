@@ -162,13 +162,13 @@ func TestJobFilters(t *testing.T) {
 	filters["-u"] = "darrellb"
 	filters["-s"] = "r"
 
+	//Maps are unordered
 	arguments := buildQstatArgumentList(filters)
 
-	assert.Equal(t, "-u", arguments[0])
-	assert.Equal(t, "darrellb", arguments[1])
-
-	assert.Equal(t, "-s", arguments[2])
-	assert.Equal(t, "r", arguments[3])
+	assert.Contains(t, arguments, "-u")
+	assert.Contains(t, arguments, "darrellb")
+	assert.Contains(t, arguments, "-s")
+	assert.Contains(t, arguments, "r")
 
 	assert.True(t, len(arguments) == (2*len(filters))+2)
 
@@ -185,4 +185,15 @@ func TestJobFilters(t *testing.T) {
 	generatedArgs := buildQstatArgumentList(filters)
 
 	assert.Equal(t, expectedArgs, generatedArgs)
+}
+
+func TestGetJobsWithFilter(t *testing.T) {
+	os.Setenv(environmentPrefix+"TEST", "true")
+	jobs, _ := GetJobsWithFilter(func(j Job) bool {
+		return j.State == "r"
+	})
+
+	assert.Len(t, jobs, 3)
+
+	os.Unsetenv(environmentPrefix + "TEST")
 }
