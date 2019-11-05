@@ -43,7 +43,8 @@ jobs:
         cd $GOROOT/src/github.com/metrumresearchgroup/gogridengine
         go test -v -covermode=count -coverprofile=coverage.out
         cp /home/runner/go/bin/goveralls $GOROOT/bin
-        git checkout master
+        BRANCH=`echo $GITHUB_REF | awk -F "/" '{print $NF}'`
+        git checkout $BRANCH
         $GOROOT/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
     - name: Build
