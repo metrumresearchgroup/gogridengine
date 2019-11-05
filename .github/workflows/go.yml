@@ -44,7 +44,7 @@ jobs:
         go test -v -covermode=count -coverprofile=coverage.out
         cp /home/runner/go/bin/goveralls $GOROOT/bin
         BRANCH=`echo $GITHUB_REF | awk -F "/" '{print $NF}'`
-        echo "Checking out $BRANCH"
+        echo "Checking out $BRANCH with --"
         git checkout $BRANCH -- 
         $GOROOT/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
