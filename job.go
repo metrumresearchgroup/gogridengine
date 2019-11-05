@@ -64,6 +64,19 @@ func GetJobsWithFilter(filterfunc func(j Job) bool) (JobList, error) {
 	return jobs.Filter(filterfunc), nil
 }
 
+//FilterJobs is a function allowing you to manually provide a JobList and a filter function to limit the content down.
+func FilterJobs(jobs JobList, filter func(j Job) bool) JobList {
+	var jl JobList
+
+	for _, v := range jobs {
+		if filter(v) {
+			jl = append(jl, v)
+		}
+	}
+
+	return jl
+}
+
 //Filter allows for the passage of any function taking a JobList and Filtering its contents down.
 //Should be usable in fluent fashion as long as JobList is being returned
 func (jl JobList) Filter(filter func(j Job) bool) JobList {

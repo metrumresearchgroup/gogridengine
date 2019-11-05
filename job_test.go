@@ -250,3 +250,31 @@ func TestJobList_Sort(t *testing.T) {
 	assert.Len(t, jl, 3)
 	assert.Equal(t, Job{JBJobNumber: 2}, jl[1])
 }
+
+func TestFilterJobs(t *testing.T) {
+
+	jl := JobList{
+		{
+			JobName: "Meow",
+		},
+		{
+			JobName: "Woof",
+		},
+		{
+			JobName: "Moo",
+		},
+	}
+
+	r1 := FilterJobs(jl, func(j Job) bool {
+		//Cow / Dog Filter
+		if j.JobName == "Meow" || j.JobName == "Woof" {
+			return true
+		}
+
+		return false
+	})
+
+	assert.NotEmpty(t, r1)
+	assert.Len(t, r1, 2)
+
+}
