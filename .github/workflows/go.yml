@@ -25,6 +25,8 @@ jobs:
         fi
         
     - name: Test
+      env:
+        GOGRIDENGINE_TEST: "true"
       run: |
         go test -v -covermode=count -coverprofile=general.out
         go test -json > report.json
@@ -32,6 +34,7 @@ jobs:
     - name: Coverall
       env:
         COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        GOGRIDENGINE_TEST: "true"
       run: |
         go get -v golang.org/x/tools/cmd/cover
         go get -v github.com/mattn/goveralls
