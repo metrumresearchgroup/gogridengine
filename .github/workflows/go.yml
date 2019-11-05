@@ -45,7 +45,7 @@ jobs:
         cp /home/runner/go/bin/goveralls $GOROOT/bin
         BRANCH=`echo $GITHUB_REF | awk -F "/" '{print $NF}'`
         echo "Checking out $BRANCH"
-        git checkout $BRANCH
+        git checkout $BRANCH -- 
         $GOROOT/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
     - name: Build
