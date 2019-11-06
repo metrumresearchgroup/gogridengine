@@ -231,7 +231,7 @@ func TestJobInfo_GetXML(t *testing.T) {
 					XMLName: xml.Name{
 						Local: "queue_info",
 					},
-					Queues: []QueueList{
+					Queues: []Host{
 						{
 							XMLName: xml.Name{
 								Local: "Queue-List",
