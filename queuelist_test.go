@@ -367,7 +367,7 @@ func TestSerializeToXML(t *testing.T) {
 		XMLName: xml.Name{
 			Local: "Queue-List",
 		},
-		JobList: []JobList{
+		JobList: []Job{
 			{
 				XMLName: xml.Name{
 					Local: "job_list",

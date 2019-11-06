@@ -17,10 +17,10 @@ import (
 )
 
 //GetQstatOutput is used to pull in XML content from either the QSTAT command or generated data for testing purpoes
-func GetQstatOutput() (string, error) {
+func GetQstatOutput(filters map[string]string) (string, error) {
 
-	if os.Getenv("TEST") != "true" {
-		return qStatFromExec()
+	if os.Getenv(environmentPrefix+"TEST") != "true" {
+		return qStatFromExec(filters)
 	}
 
 	//Fallthrough to generation by object randomly
@@ -31,7 +31,7 @@ func GetQstatOutput() (string, error) {
 func DeleteQueuedJobByID(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
-	if os.Getenv("TEST") == "true" {
+	if os.Getenv(environmentPrefix+"TEST") == "true" {
 		return "test", nil
 	}
 
@@ -69,7 +69,7 @@ func DeleteQueuedJobByID(targets []string) (string, error) {
 func DeleteQueuedJobByUsernames(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
-	if os.Getenv("TEST") == "true" {
+	if os.Getenv(environmentPrefix+"TEST") == "true" {
 		return "test", nil
 	}
 
@@ -104,7 +104,8 @@ func DeleteQueuedJobByUsernames(targets []string) (string, error) {
 	return output.String(), nil
 }
 
-func qStatFromExec() (string, error) {
+//Filters are meant to be in the form of [key] being being a switch and the value to be the anything passed to the option
+func qStatFromExec(filters map[string]string) (string, error) {
 
 	//Locate the binary in existing path
 	binary, err := exec.LookPath("qstat")
@@ -119,12 +120,7 @@ func qStatFromExec() (string, error) {
 	//Cowardly cancel on any other exit mode
 	defer cancel()
 
-	arguments := []string{
-		"-u",
-		"*",
-		"-F",
-		"-xml",
-	}
+	arguments := buildQstatArgumentList(filters)
 
 	command := exec.CommandContext(ctx, binary, arguments...)
 	command.Env = os.Environ()
@@ -143,6 +139,40 @@ func qStatFromExec() (string, error) {
 	return string(outputBytes), nil
 }
 
+func buildQstatArgumentList(filters map[string]string) []string {
+	var arguments []string
+	userFiltered := false
+
+	//Let's iterate over all the provided kvps
+	for k, v := range filters {
+		//If a user has been provided, let's specify those users
+		if k == "-u" {
+			userFiltered = true
+		}
+
+		//If the value is empty, we'll only pass the key
+		if len(v) == 0 {
+			arguments = append(arguments, k)
+		}
+
+		//Otherwise let's append both
+		if len(v) > 0 {
+			arguments = append(arguments, k, v)
+		}
+
+	}
+
+	//No user provided, let's make sure to provide the details for listing all users
+	if !userFiltered {
+		arguments = append(arguments, "-u", "*")
+	}
+
+	//Always add the strictest requirements last (IE the Full output and XML Compoenent)
+	arguments = append(arguments, "-F", "-xml")
+
+	return arguments
+}
+
 func generatedQstatOputput() (string, error) {
 
 	entropy := rand.NewSource(time.Now().UnixNano())
@@ -153,14 +183,14 @@ func generatedQstatOputput() (string, error) {
 			Local: "job_info",
 		},
 		PendingJobs: PendingJob{
-			JobList: []JobList{
+			JobList: []Job{
 				{
 					XMLName: xml.Name{
 						Local: "job_list",
 					},
-					State:          "pw",
+					State:          "qw",
 					StateAttribute: "pending",
-					JBJobNumber:    int64(random.Int()),
+					JBJobNumber:    1,
 					JATPriority:    random.Float64(),
 					JobName:        "Job-" + strconv.Itoa(random.Int()),
 					JobOwner:       "Owner-" + strconv.Itoa(random.Int()),
@@ -224,13 +254,13 @@ func generatedQstatOputput() (string, error) {
 							Value: fmt.Sprintf("%f", random.Float64()),
 						},
 					},
-					JobList: []JobList{
+					JobList: []Job{
 						{
 							XMLName: xml.Name{
 								Local: "job_list",
 							},
 							State:          "r",
-							JBJobNumber:    int64(random.Int()),
+							JBJobNumber:    2,
 							JATPriority:    random.Float64(),
 							StateAttribute: "running",
 							JobName:        "Job-" + strconv.Itoa(random.Int()),
@@ -242,7 +272,7 @@ func generatedQstatOputput() (string, error) {
 								Local: "job_list",
 							},
 							State:          "r",
-							JBJobNumber:    44,
+							JBJobNumber:    3,
 							JATPriority:    random.Float64(),
 							StateAttribute: "running",
 							JobName:        "validation",
@@ -258,14 +288,14 @@ func generatedQstatOputput() (string, error) {
 					Name: "all.q@testing.second", //Always needs the @ symbol
 
 					Resources: ResourceList{},
-					JobList: []JobList{
+					JobList: []Job{
 						{
 							XMLName: xml.Name{
 								Local: "job_list",
 							},
 							State:          "r",
 							StateAttribute: "running",
-							JBJobNumber:    1,
+							JBJobNumber:    4,
 							JATPriority:    1,
 							JobName:        "Second-Host-Job",
 							JobOwner:       "Owner",

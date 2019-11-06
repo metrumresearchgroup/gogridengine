@@ -1,15 +1,17 @@
 package gogridengine
 
 import (
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCLIModeFailureGetQstatOutput(t *testing.T) {
 	//Force to run output and fail
-	os.Setenv("TEST", "false")
+	os.Setenv(environmentPrefix+"TEST", "false")
 
 	tests := []struct {
 		name    string
@@ -24,7 +26,7 @@ func TestCLIModeFailureGetQstatOutput(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetQstatOutput()
+			got, err := GetQstatOutput(make(map[string]string))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getQstatOutput() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -39,7 +41,7 @@ func TestCLIModeFailureGetQstatOutput(t *testing.T) {
 //Just testing to make sure that it doesn't generate unexpected errors.
 func TestGeneratedOutputGenerateQState(t *testing.T) {
 	//Force to run output and fail
-	os.Setenv("TEST", "true")
+	os.Setenv(environmentPrefix+"TEST", "true")
 
 	tests := []struct {
 		name    string
@@ -54,7 +56,7 @@ func TestGeneratedOutputGenerateQState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := GetQstatOutput()
+			_, err := GetQstatOutput(make(map[string]string))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetQstatOutput() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -66,7 +68,7 @@ func TestGeneratedOutputGenerateQState(t *testing.T) {
 func TestDeleteQueuedJobByID(t *testing.T) {
 	fakeBinary("qdel")
 	updatePathWithCurrentDir()
-	originalValue := os.Getenv("TEST")
+	originalValue := os.Getenv(environmentPrefix + "TEST")
 
 	type args struct {
 		jobs []string
@@ -99,9 +101,9 @@ func TestDeleteQueuedJobByID(t *testing.T) {
 	}
 	for k, tt := range tests {
 		if (k+1)%2 == 0 {
-			os.Setenv("TEST", "true")
+			os.Setenv(environmentPrefix+"TEST", "true")
 		} else {
-			os.Unsetenv("TEST")
+			os.Unsetenv(environmentPrefix + "TEST")
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			if _, err := DeleteQueuedJobByID(tt.args.jobs); (err != nil) != tt.wantErr {
@@ -110,13 +112,14 @@ func TestDeleteQueuedJobByID(t *testing.T) {
 		})
 	}
 
-	os.Setenv("TEST", originalValue)
+	os.Setenv(environmentPrefix+"TEST", originalValue)
 	purgeBinary("qdel")
 }
 
-//Create an executable qstat file that will exit ok
+//Create an executable qstat file that will exit ok. Will also print the raw input just so we can verify it
 func fakeBinary(name string) {
 	contents := `#!/bin/bash
+	echo $0 $@
 	exit 0`
 
 	err := ioutil.WriteFile(name, []byte(contents), 0755)
@@ -166,9 +169,9 @@ func TestDeleteQueuedJobByUsernames(t *testing.T) {
 	}
 	for k, tt := range tests {
 		if (k+1)%2 == 0 {
-			os.Setenv("TEST", "true")
+			os.Setenv(environmentPrefix+"TEST", "true")
 		} else {
-			os.Unsetenv("TEST")
+			os.Unsetenv(environmentPrefix + "TEST")
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			if _, err := DeleteQueuedJobByUsernames(tt.args.usernames); (err != nil) != tt.wantErr {
@@ -185,4 +188,18 @@ func getCurrentPath() string {
 
 func updatePathWithCurrentDir() {
 	os.Setenv("PATH", getCurrentPath()+":.")
+}
+
+func TestQSTATWithFakeBinary(t *testing.T) {
+	fakeBinary("qstat")
+	updatePathWithCurrentDir()
+
+	os.Unsetenv("TEST")
+	output, err := GetQstatOutput(make(map[string]string))
+
+	assert.NotEmpty(t, output)
+	assert.Nil(t, err)
+
+	purgeBinary("qstat")
+	os.Setenv("TEST", "true")
 }

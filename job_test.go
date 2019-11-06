@@ -2,7 +2,10 @@ package gogridengine
 
 import (
 	"encoding/xml"
+	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDeSerializeXml(t *testing.T) {
@@ -17,7 +20,7 @@ func TestDeSerializeXml(t *testing.T) {
 	<slots>1</slots>
 </job_list>`
 
-	var t2 JobList
+	var t2 Job
 	xml.Unmarshal([]byte(source), &t2)
 
 	if t2.JBJobNumber != 4291 {
@@ -71,8 +74,8 @@ func TestIsJobRunning(t *testing.T) {
   <slots>1</slots>
 </job_list>`
 
-	var pl JobList
-	var rl JobList
+	var pl Job
+	var rl Job
 	err := xml.Unmarshal([]byte(pending), &pl)
 	if err != nil {
 		t.Errorf("Unable to unmarshall xml")
@@ -84,7 +87,7 @@ func TestIsJobRunning(t *testing.T) {
 	}
 
 	type args struct {
-		job JobList
+		job Job
 	}
 	tests := []struct {
 		name string
@@ -113,4 +116,165 @@ func TestIsJobRunning(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetJobs(t *testing.T) {
+	os.Setenv(environmentPrefix+"TEST", "true")
+
+	jobs, err := GetJobs()
+	runningCount := 0
+	pendingCount := 0
+
+	//Definitely should not fail in test evaluation mode
+	if err != nil {
+		t.Error(err)
+	}
+
+	//Our defined structue is 3 running jobs and 1 pending jobs
+
+	assert.Equal(t, 4, len(jobs))
+
+	for _, v := range jobs {
+		if v.State == "r" {
+			runningCount++
+			continue
+		}
+		pendingCount++
+	}
+
+	assert.Equal(t, 3, runningCount)
+	assert.Equal(t, 1, pendingCount)
+}
+
+func TestJobFilters(t *testing.T) {
+	os.Setenv(environmentPrefix+"TEST", "true")
+
+	//Let's first Verify that passing parameters gets to the argument list correctly
+
+	//Verify running empty processes fine.
+	_, err := GetQstatOutput(make(map[string]string))
+
+	//Exec component should still process with the fake binary
+	assert.Nil(t, err)
+
+	filters := make(map[string]string)
+
+	filters["-u"] = "darrellb"
+	filters["-s"] = "r"
+
+	//Maps are unordered
+	arguments := buildQstatArgumentList(filters)
+
+	assert.Contains(t, arguments, "-u")
+	assert.Contains(t, arguments, "darrellb")
+	assert.Contains(t, arguments, "-s")
+	assert.Contains(t, arguments, "r")
+
+	//Get Key of User Switch
+	var userIndex int
+
+	for key, value := range arguments {
+		if value == "-u" {
+			userIndex = key
+		}
+	}
+
+	assert.Equal(t, "darrellb", arguments[userIndex+1])
+
+	assert.True(t, len(arguments) == (2*len(filters))+2)
+
+	//Get State Index
+	var stateIndex int
+
+	for key, value := range arguments {
+		if value == "-s" {
+			stateIndex = key
+		}
+	}
+
+	assert.Equal(t, "r", arguments[stateIndex+1])
+
+	assert.True(t, len(arguments) == (2*len(filters))+2)
+
+	//Now, let's verify the argument list for an unspecified filter
+	filters = make(map[string]string)
+
+	expectedArgs := []string{
+		"-u",
+		"*",
+		"-F",
+		"-xml",
+	}
+
+	generatedArgs := buildQstatArgumentList(filters)
+
+	assert.Equal(t, expectedArgs, generatedArgs)
+}
+
+func TestGetJobsWithFilter(t *testing.T) {
+	os.Setenv(environmentPrefix+"TEST", "true")
+	jobs, _ := GetJobsWithFilter(func(j Job) bool {
+		return j.State == "r"
+	})
+
+	assert.Len(t, jobs, 3)
+
+	os.Unsetenv(environmentPrefix + "TEST")
+
+	//Test Negative Path
+	jobs, err := GetJobsWithFilter(func(j Job) bool {
+		return j.State == "r"
+	})
+
+	assert.NotNil(t, err)
+	assert.Empty(t, jobs)
+}
+
+func TestJobList_Sort(t *testing.T) {
+	jl := JobList{
+		{
+			JBJobNumber: 1,
+		},
+		{
+			JBJobNumber: 3,
+		},
+		{
+			JBJobNumber: 2,
+		},
+	}
+
+	jl = jl.Sort(func(i, j int) bool {
+		return jl[i].JBJobNumber < jl[j].JBJobNumber
+	})
+
+	assert.Len(t, jl, 3)
+	assert.Equal(t, Job{JBJobNumber: 2}, jl[1])
+}
+
+func TestFilterJobs(t *testing.T) {
+
+	jl := JobList{
+		{
+			JobName: "Meow",
+		},
+		{
+			JobName: "Woof",
+		},
+		{
+			JobName: "Moo",
+		},
+	}
+
+	r1 := FilterJobs(jl, func(j Job) bool {
+		//Cow / Dog Filter
+		if j.JobName == "Meow" || j.JobName == "Woof" {
+			return true
+		}
+
+		return false
+	})
+
+	assert.NotEmpty(t, r1)
+	assert.Len(t, r1, 2)
+
 }

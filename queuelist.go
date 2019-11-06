@@ -14,5 +14,5 @@ type QueueList struct {
 	SlotsTotal    int32        `xml:"slots_total" json:"slots_total"`
 	LoadAverage   float64      `xml:"load_avg" json:"load_average"`
 	Resources     ResourceList `xml:"resource" json:"resources"`
-	JobList       []JobList    `xml:"job_list" json:"job_list"`
+	JobList       []Job        `xml:"job_list" json:"job_list"`
 }

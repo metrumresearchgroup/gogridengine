@@ -1,10 +1,15 @@
 package gogridengine
 
-import ()
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"sort"
+)
 
-//JobList is the Sun Grid Engine XML Definition for a job running on a specific host, its details and current status
-type JobList struct {
+//JobList is a slice of Jobs that is filterable and otherwise actionable via receiver.
+type JobList []Job
+
+//Job is the Sun Grid Engine XML Definition for a job running on a specific host, its details and current status
+type Job struct {
 	//Because this is a node, we still need the XMLName identifier
 	XMLName        xml.Name `xml:"job_list" json:"-"`
 	StateAttribute string   `xml:"state,attr" json:"state_attribute_text"`
@@ -19,11 +24,76 @@ type JobList struct {
 }
 
 //IsJobRunning returns a int (1 - running) (0 - not)
-func IsJobRunning(job JobList) int {
+func IsJobRunning(job Job) int {
 
 	if job.State == "r" {
 		return 1
 	}
 
 	return 0
+}
+
+//GetJobs returns a slice of only jobs from both scheduled and unscheduled queues
+func GetJobs() (JobList, error) {
+	var jobs []Job
+
+	ji, err := GetJobInfo()
+
+	if err != nil {
+		return []Job{}, err
+	}
+
+	//Add running jobs to the slice first
+	for _, q := range ji.QueueInfo.Queues {
+		jobs = append(jobs, q.JobList...)
+	}
+
+	//Add pending jobs
+	jobs = append(jobs, ji.PendingJobs.JobList...)
+
+	return jobs, nil
+}
+
+//GetJobsWithFilter allows you to specify a filter at the time of retrieving the JobList
+func GetJobsWithFilter(filterfunc func(j Job) bool) (JobList, error) {
+	jobs, err := GetJobs()
+	if err != nil {
+		return JobList{}, err
+	}
+
+	return jobs.Filter(filterfunc), nil
+}
+
+//FilterJobs is a function allowing you to manually provide a JobList and a filter function to limit the content down.
+func FilterJobs(jobs JobList, filter func(j Job) bool) JobList {
+	var jl JobList
+
+	for _, v := range jobs {
+		if filter(v) {
+			jl = append(jl, v)
+		}
+	}
+
+	return jl
+}
+
+//Filter allows for the passage of any function taking a JobList and Filtering its contents down.
+//Should be usable in fluent fashion as long as JobList is being returned
+func (jl JobList) Filter(filter func(j Job) bool) JobList {
+	var jobs JobList
+
+	for _, v := range jl {
+		if filter(v) {
+			jobs = append(jobs, v)
+		}
+	}
+
+	return jobs
+}
+
+//Sort allows you to provide your own Less function to handle sorting the list directly
+func (jl JobList) Sort(sorter func(i, j int) bool) JobList {
+	sort.Slice(jl[:], sorter)
+
+	return jl
 }
