@@ -8,7 +8,7 @@ import (
 //ResourceList is a slice of resources primarily used for sourcing internally and setup of receiver based functions
 type ResourceList []Resource
 
-//Resource is a more general reported item from
+//Resource is a general representation of a system resource attached to a host, identified purely by Key-value pairs. These can be best thought of as Unix Load, Memory resource allocations, etc
 type Resource struct {
 	XMLName xml.Name `xml:"resource" json:"-"`
 	Name    string   `xml:"name,attr" json:"name"`

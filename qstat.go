@@ -202,7 +202,7 @@ func generatedQstatOputput() (string, error) {
 			XMLName: xml.Name{
 				Local: "queue_info",
 			},
-			Queues: []QueueList{
+			Queues: []Host{
 				{
 					XMLName: xml.Name{
 						Local: "Queue-List",

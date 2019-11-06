@@ -4,8 +4,8 @@ import (
 	"encoding/xml"
 )
 
-//QueueList is the top-level object (per host) that includes all subsequent data including jobs, resources etc
-type QueueList struct {
+//Host is the top-level object (per host) that includes all subsequent data including jobs, resources etc
+type Host struct {
 	XMLName       xml.Name     `xml:"Queue-List" json:"-"`
 	Name          string       `xml:"name" json:"name"`
 	QType         string       `xml:"qtype" json:"qtype"`

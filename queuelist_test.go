@@ -354,7 +354,7 @@ func TestDeserializeQueueList(t *testing.T) {
  </job_list>
 </Queue-List>`
 
-	var ql QueueList
+	var ql Host
 	xml.Unmarshal([]byte(source), &ql)
 
 	if ql.Name == "" {
@@ -363,7 +363,7 @@ func TestDeserializeQueueList(t *testing.T) {
 }
 
 func TestSerializeToXML(t *testing.T) {
-	QueueList := QueueList{
+	QueueList := Host{
 		XMLName: xml.Name{
 			Local: "Queue-List",
 		},
