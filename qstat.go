@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -30,7 +33,13 @@ func DeleteQueuedJobByID(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
 	if os.Getenv(environmentPrefix+"TEST") == "true" {
-		return "test", nil
+		outputs := []string{}
+		for _, v := range targets {
+			JobID, _ := strconv.ParseInt(v, 10, 64)
+			outputs = append(outputs, fmt.Sprintf("username has deleted job %d", JobID))
+		}
+
+		return strings.Join(outputs, "\n"), nil
 	}
 
 	s := strings.Join(targets, ",")
@@ -68,7 +77,15 @@ func DeleteQueuedJobByUsernames(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
 	if os.Getenv(environmentPrefix+"TEST") == "true" {
-		return "test", nil
+		responses := rand.Intn(1000)
+		outputs := []string{}
+
+		for i := 0; i < responses; i++ {
+			jobID := rand.Intn(responses)
+			outputs = append(outputs, fmt.Sprintf("username has deleted job %d", jobID))
+		}
+
+		return strings.Join(outputs, "\n"), nil
 	}
 
 	s := strings.Join(targets, ",")
