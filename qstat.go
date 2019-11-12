@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -171,18 +172,20 @@ func buildQstatArgumentList(filters map[string]string) []string {
 }
 
 func generatedQstatOputput() (string, error) {
-	file, err := os.Open("test_data/medium.xml")
+	//Get the medium XML file from the master repo
+
+	xmlresponse, err := http.Get("https://raw.githubusercontent.com/metrumresearchgroup/gogridengine/master/test_data/medium.xml")
 
 	if err != nil {
 		return "", err
 	}
 
-	contents, err := ioutil.ReadAll(file)
+	content, err := ioutil.ReadAll(xmlresponse.Body)
 
 	if err != nil {
 		return "", err
 	}
 
-	return string(contents), nil
+	return string(content), nil
 
 }

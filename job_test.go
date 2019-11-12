@@ -132,7 +132,7 @@ func TestGetJobs(t *testing.T) {
 
 	//Our defined structue is 3 running jobs and 1 pending jobs
 
-	assert.Equal(t, 4, len(jobs))
+	assert.Equal(t, 772, len(jobs))
 
 	for _, v := range jobs {
 		if v.State == "r" {
@@ -142,8 +142,8 @@ func TestGetJobs(t *testing.T) {
 		pendingCount++
 	}
 
-	assert.Equal(t, 3, runningCount)
-	assert.Equal(t, 1, pendingCount)
+	assert.Equal(t, 761, runningCount)
+	assert.Equal(t, 11, pendingCount)
 }
 
 func TestJobFilters(t *testing.T) {
@@ -217,7 +217,7 @@ func TestGetJobsWithFilter(t *testing.T) {
 		return j.State == "r"
 	})
 
-	assert.Len(t, jobs, 3)
+	assert.Len(t, jobs, 761)
 
 	os.Unsetenv(environmentPrefix + "TEST")
 
