@@ -3,10 +3,11 @@ package gogridengine
 import (
 	"bytes"
 	"context"
-	"encoding/xml"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
@@ -32,7 +33,13 @@ func DeleteQueuedJobByID(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
 	if os.Getenv(environmentPrefix+"TEST") == "true" {
-		return "test", nil
+		outputs := []string{}
+		for _, v := range targets {
+			JobID, _ := strconv.ParseInt(v, 10, 64)
+			outputs = append(outputs, fmt.Sprintf("username has deleted job %d", JobID))
+		}
+
+		return strings.Join(outputs, "\n"), nil
 	}
 
 	s := strings.Join(targets, ",")
@@ -70,7 +77,15 @@ func DeleteQueuedJobByUsernames(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
 	if os.Getenv(environmentPrefix+"TEST") == "true" {
-		return "test", nil
+		responses := rand.Intn(1000)
+		outputs := []string{}
+
+		for i := 0; i < responses; i++ {
+			jobID := rand.Intn(responses)
+			outputs = append(outputs, fmt.Sprintf("username has deleted job %d", jobID))
+		}
+
+		return strings.Join(outputs, "\n"), nil
 	}
 
 	s := strings.Join(targets, ",")
@@ -174,138 +189,20 @@ func buildQstatArgumentList(filters map[string]string) []string {
 }
 
 func generatedQstatOputput() (string, error) {
+	//Get the medium XML file from the master repo
 
-	entropy := rand.NewSource(time.Now().UnixNano())
-	random := rand.New(entropy)
+	xmlresponse, err := http.Get("https://raw.githubusercontent.com/metrumresearchgroup/gogridengine/master/test_data/medium.xml")
 
-	ji := JobInfo{
-		XMLName: xml.Name{
-			Local: "job_info",
-		},
-		PendingJobs: PendingJob{
-			JobList: []Job{
-				{
-					XMLName: xml.Name{
-						Local: "job_list",
-					},
-					State:          "qw",
-					StateAttribute: "pending",
-					JBJobNumber:    1,
-					JATPriority:    random.Float64(),
-					JobName:        "Job-" + strconv.Itoa(random.Int()),
-					JobOwner:       "Owner-" + strconv.Itoa(random.Int()),
-					Slots:          3,
-				},
-			},
-		},
-		QueueInfo: QueueInfo{
-			XMLName: xml.Name{
-				Local: "queue_info",
-			},
-			Queues: []Host{
-				{
-					XMLName: xml.Name{
-						Local: "Queue-List",
-					},
-					Name:          "all.q@testing.local", //Always needs the @ symbol
-					SlotsTotal:    int32(random.Int()),
-					SlotsUsed:     int32(random.Int()),
-					SlotsReserved: int32(random.Int()),
-					LoadAverage:   float64(random.Float64()),
-					Resources: ResourceList{
-						{
-							Name:  "load_average",
-							Type:  "hl",
-							Value: "1.04",
-						},
-						{
-							Name:  "num_proc",
-							Type:  "ag",
-							Value: "3",
-						},
-						{
-							Name:  "mem_free",
-							Type:  "af",
-							Value: "2.04G",
-						},
-						{
-							Name:  "swap_free",
-							Type:  "ae",
-							Value: "500M",
-						},
-						{
-							Name:  "virtual_free",
-							Type:  "ad",
-							Value: "4G",
-						},
-						{
-							Name:  "mem_used",
-							Type:  "ac",
-							Value: "3G",
-						},
-						{
-							Name:  "mem_total",
-							Type:  "ab",
-							Value: "6G",
-						},
-						{
-							Name:  "cpu",
-							Type:  "aa",
-							Value: fmt.Sprintf("%f", random.Float64()),
-						},
-					},
-					JobList: []Job{
-						{
-							XMLName: xml.Name{
-								Local: "job_list",
-							},
-							State:          "r",
-							JBJobNumber:    2,
-							JATPriority:    random.Float64(),
-							StateAttribute: "running",
-							JobName:        "Job-" + strconv.Itoa(random.Int()),
-							JobOwner:       "Owner-" + strconv.Itoa(random.Int()),
-							Slots:          3,
-						},
-						{
-							XMLName: xml.Name{
-								Local: "job_list",
-							},
-							State:          "r",
-							JBJobNumber:    3,
-							JATPriority:    random.Float64(),
-							StateAttribute: "running",
-							JobName:        "validation",
-							JobOwner:       "Owner-" + strconv.Itoa(random.Int()),
-							Slots:          3,
-						},
-					},
-				},
-				{
-					XMLName: xml.Name{
-						Local: "Queue-List",
-					},
-					Name: "all.q@testing.second", //Always needs the @ symbol
-
-					Resources: ResourceList{},
-					JobList: []Job{
-						{
-							XMLName: xml.Name{
-								Local: "job_list",
-							},
-							State:          "r",
-							StateAttribute: "running",
-							JBJobNumber:    4,
-							JATPriority:    1,
-							JobName:        "Second-Host-Job",
-							JobOwner:       "Owner",
-							Slots:          14,
-						},
-					},
-				},
-			},
-		},
+	if err != nil {
+		return "", err
 	}
 
-	return ji.GetXML()
+	content, err := ioutil.ReadAll(xmlresponse.Body)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(content), nil
+
 }

@@ -203,3 +203,9 @@ func TestQSTATWithFakeBinary(t *testing.T) {
 	purgeBinary("qstat")
 	os.Setenv("TEST", "true")
 }
+
+func Test_generatedQstatOputput(t *testing.T) {
+	output, _ := generatedQstatOputput()
+	assert.NotEmpty(t, output)
+
+}
