@@ -213,8 +213,8 @@ func TestJobFilters(t *testing.T) {
 
 func TestGetJobsWithFilter(t *testing.T) {
 	os.Setenv(environmentPrefix+"TEST", "true")
-	jobs, _ := GetJobsWithFilter(func(j Job) bool {
-		return j.State == "r"
+	jobs, _ := GetJobsWithFilter(func(j Job) (bool, error) {
+		return j.State == "r", nil
 	})
 
 	assert.Len(t, jobs, 3)
@@ -222,8 +222,8 @@ func TestGetJobsWithFilter(t *testing.T) {
 	os.Unsetenv(environmentPrefix + "TEST")
 
 	//Test Negative Path
-	jobs, err := GetJobsWithFilter(func(j Job) bool {
-		return j.State == "r"
+	jobs, err := GetJobsWithFilter(func(j Job) (bool, error) {
+		return j.State == "r", nil
 	})
 
 	assert.NotNil(t, err)
@@ -265,13 +265,12 @@ func TestFilterJobs(t *testing.T) {
 		},
 	}
 
-	r1 := FilterJobs(jl, func(j Job) bool {
+	r1, _ := FilterJobs(jl, func(j Job) (bool, error) {
 		//Cow / Dog Filter
 		if j.JobName == "Meow" || j.JobName == "Woof" {
-			return true
+			return true, nil
 		}
-
-		return false
+		return false, nil
 	})
 
 	assert.NotEmpty(t, r1)

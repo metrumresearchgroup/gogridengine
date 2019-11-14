@@ -55,40 +55,49 @@ func GetJobs() (JobList, error) {
 }
 
 //GetJobsWithFilter allows you to specify a filter at the time of retrieving the JobList
-func GetJobsWithFilter(filterfunc func(j Job) bool) (JobList, error) {
+func GetJobsWithFilter(filterfunc func(j Job) (bool, error)) (JobList, error) {
 	jobs, err := GetJobs()
 	if err != nil {
 		return JobList{}, err
 	}
 
-	return jobs.Filter(filterfunc), nil
+	return FilterJobs(jobs, filterfunc)
 }
 
 //FilterJobs is a function allowing you to manually provide a JobList and a filter function to limit the content down.
-func FilterJobs(jobs JobList, filter func(j Job) bool) JobList {
+func FilterJobs(jobs JobList, filter func(j Job) (bool, error)) (JobList, error) {
 	var jl JobList
 
 	for _, v := range jobs {
-		if filter(v) {
+		ok, err := filter(v)
+		if err != nil {
+			return jobs, err
+		}
+
+		if ok {
 			jl = append(jl, v)
 		}
 	}
 
-	return jl
+	return jl, nil
 }
 
 //Filter allows for the passage of any function taking a JobList and Filtering its contents down.
 //Should be usable in fluent fashion as long as JobList is being returned
-func (jl JobList) Filter(filter func(j Job) bool) JobList {
+func (jl JobList) Filter(filter func(j Job) (bool, error)) (JobList, error) {
 	var jobs JobList
 
 	for _, v := range jl {
-		if filter(v) {
+		ok, err := filter(v)
+		if err != nil {
+			return jl, err
+		}
+		if ok {
 			jobs = append(jobs, v)
 		}
 	}
 
-	return jobs
+	return jobs, nil
 }
 
 //Sort allows you to provide your own Less function to handle sorting the list directly
