@@ -97,7 +97,13 @@ func IsJobRunning(job Job) int {
 func GetJobs() (JobList, error) {
 	var jobs []Job
 
-	ji, err := GetJobInfo()
+	xml, err := GetQstatOutput(make(map[string]string))
+
+	if err != nil {
+		return JobList{}, err
+	}
+
+	ji, err := NewJobInfo(xml)
 
 	if err != nil {
 		return []Job{}, err

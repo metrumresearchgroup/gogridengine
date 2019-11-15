@@ -1016,3 +1016,170 @@ func TestDeserializingWithTasks(t *testing.T) {
 		assert.True(t, q.Tasks.Source != "")
 	}
 }
+
+func TestNewJobInfo(t *testing.T) {
+	input := `<?xml version='1.0'?>
+	<job_info  xmlns:xsd="http://arc.liv.ac.uk/repos/darcs/sge/source/dist/util/resources/schemas/qstat/qstat.xsd">
+	  <queue_info>
+		<Queue-List>
+		  <name>all.q@ip-10-0-1-80.ec2.internal</name>
+		  <qtype>BIP</qtype>
+		  <slots_used>8</slots_used>
+		  <slots_resv>0</slots_resv>
+		  <slots_total>8</slots_total>
+		  <load_avg>0.06000</load_avg>
+		  <arch>lx-amd64</arch>
+		  <resource name="load_avg" type="hl">0.060000</resource>
+		  <resource name="load_short" type="hl">0.090000</resource>
+		  <resource name="load_medium" type="hl">0.060000</resource>
+		  <resource name="load_long" type="hl">0.010000</resource>
+		  <resource name="arch" type="hl">lx-amd64</resource>
+		  <resource name="num_proc" type="hl">8</resource>
+		  <resource name="mem_free" type="hl">13.251G</resource>
+		  <resource name="swap_free" type="hl">0.000</resource>
+		  <resource name="virtual_free" type="hl">13.251G</resource>
+		  <resource name="mem_total" type="hl">14.686G</resource>
+		  <resource name="swap_total" type="hl">0.000</resource>
+		  <resource name="virtual_total" type="hl">14.686G</resource>
+		  <resource name="mem_used" type="hl">1.435G</resource>
+		  <resource name="swap_used" type="hl">0.000</resource>
+		  <resource name="virtual_used" type="hl">1.435G</resource>
+		  <resource name="cpu" type="hl">0.800000</resource>
+		  <resource name="m_topology" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_topology_inuse" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_socket" type="hl">1</resource>
+		  <resource name="m_core" type="hl">4</resource>
+		  <resource name="m_thread" type="hl">8</resource>
+		  <resource name="np_load_avg" type="hl">0.007500</resource>
+		  <resource name="np_load_short" type="hl">0.011250</resource>
+		  <resource name="np_load_medium" type="hl">0.007500</resource>
+		  <resource name="np_load_long" type="hl">0.001250</resource>
+		  <resource name="qname" type="qf">all.q</resource>
+		  <resource name="hostname" type="qf">ip-10-0-1-80.ec2.internal</resource>
+		  <resource name="slots" type="qc">0</resource>
+		  <resource name="tmpdir" type="qf">/tmp</resource>
+		  <resource name="seq_no" type="qf">0</resource>
+		  <resource name="rerun" type="qf">0.000000</resource>
+		  <resource name="calendar" type="qf">NONE</resource>
+		  <resource name="s_rt" type="qf">infinity</resource>
+		  <resource name="h_rt" type="qf">infinity</resource>
+		  <resource name="s_cpu" type="qf">infinity</resource>
+		  <resource name="h_cpu" type="qf">infinity</resource>
+		  <resource name="s_fsize" type="qf">infinity</resource>
+		  <resource name="h_fsize" type="qf">infinity</resource>
+		  <resource name="s_data" type="qf">infinity</resource>
+		  <resource name="h_data" type="qf">infinity</resource>
+		  <resource name="s_stack" type="qf">infinity</resource>
+		  <resource name="h_stack" type="qf">infinity</resource>
+		  <resource name="s_core" type="qf">infinity</resource>
+		  <resource name="h_core" type="qf">infinity</resource>
+		  <resource name="s_rss" type="qf">infinity</resource>
+		  <resource name="h_rss" type="qf">infinity</resource>
+		  <resource name="s_vmem" type="qf">infinity</resource>
+		  <resource name="h_vmem" type="qf">infinity</resource>
+		  <resource name="min_cpu_interval" type="qf">00:05:00</resource>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>5</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>10</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>15</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>20</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>25</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>30</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>35</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>40</tasks>
+		  </job_list>
+		</Queue-List>
+	  </queue_info>
+	  <job_info>
+		<job_list state="pending">
+		  <JB_job_number>1006</JB_job_number>
+		  <JAT_prio>0.55500</JAT_prio>
+		  <JB_name>task_array.sh</JB_name>
+		  <JB_owner>darrellb</JB_owner>
+		  <state>qw</state>
+		  <JB_submission_time>2019-11-15T11:31:34</JB_submission_time>
+		  <slots>1</slots>
+		  <tasks>41-150:1</tasks>
+		</job_list>
+	  </job_info>
+	</job_info>`
+
+	ji, err := NewJobInfo(input)
+
+	assert.Nil(t, err)
+
+	assert.NotEmpty(t, ji.PendingJobs.JobList)
+	assert.Len(t, ji.PendingJobs.JobList, 110)
+	assert.Equal(t, int64(41), ji.PendingJobs.JobList[0].Tasks.TaskID)
+	assert.Equal(t, int64(150), ji.PendingJobs.JobList[len(ji.PendingJobs.JobList)-1].Tasks.TaskID)
+}
