@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -276,5 +277,52 @@ func TestFilterJobs(t *testing.T) {
 
 	assert.NotEmpty(t, r1)
 	assert.Len(t, r1, 2)
+
+}
+
+func TestExtrapolateTasksToJobs(t *testing.T) {
+	j := Job{
+		StateAttribute: "pending",
+		State:          "qw",
+		JBJobNumber:    545,
+		SubmittedTime:  time.Now().String(),
+		Tasks: Task{
+			Source: "40-50:1",
+		},
+	}
+
+	//Should have 11 jobs 40-50 inclusive (40-50 incremented by 1)
+	jl, err := ExtrapolateTasksToJobs(j)
+
+	assert.Nil(t, err)
+	assert.NotEmpty(t, jl)
+
+	assert.Len(t, jl, 11)
+
+	for i := 0; i < 10; i++ {
+		assert.Equal(t, int64(40+i), jl[i].Tasks.TaskID)
+	}
+
+	assert.Equal(t, int64(40), jl[0].Tasks.TaskID)
+	assert.Equal(t, int64(50), jl[len(jl)-1].Tasks.TaskID)
+
+	j = Job{
+		StateAttribute: "pending",
+		State:          "qw",
+		JBJobNumber:    545,
+		SubmittedTime:  time.Now().String(),
+		Tasks: Task{
+			Source: "40-50:5",
+		},
+	}
+
+	jl, err = ExtrapolateTasksToJobs(j)
+
+	assert.Nil(t, err)
+
+	assert.Len(t, jl, 3)
+
+	assert.Equal(t, int64(40), jl[0].Tasks.TaskID)
+	assert.Equal(t, int64(50), jl[len(jl)-1].Tasks.TaskID)
 
 }

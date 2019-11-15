@@ -2,8 +2,67 @@ package gogridengine
 
 import (
 	"encoding/xml"
+	"errors"
+	"regexp"
 	"sort"
+	"strconv"
+	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
+
+const (
+	//TASKRANGEIDENTIFIERREGEX is a regex string used for identifying whether <tasks> objects indicate a range of tasks (normally only expressed on pending tasks)
+	TASKRANGEIDENTIFIERREGEX string = `[0-9]{1,}-[0-9]{1,}:[0-9]`
+)
+
+//Task is an element used for handling task arrays from the grid engine. Here we'll store the raw value (Source) and the TaskID if an individual identifier.
+type Task struct {
+	//Mixed type. Can be either a string representation of an int64 OR a string range identifier, eg: 40-55:1 (Jobs 40-55 incremented by 1)
+	Source string
+	//Typed representation of the Source if mapped to an integer
+	TaskID int64
+}
+
+//UnmarshalXML is a custom marshaller for handling complex logic surrounding task data.
+func (t *Task) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+
+	var v string
+	d.DecodeElement(&v, &start)
+
+	t.Source = v
+
+	if !strings.Contains(t.Source, ":") {
+		//Only process TaskIDs when not presented with a ":"
+		parsed, err := strconv.ParseInt(t.Source, 10, 64)
+
+		if err != nil {
+			log.Error("Attempting to parse Task identifier failed: ", err)
+			return err
+		}
+
+		t.TaskID = parsed
+	}
+
+	return nil
+}
+
+//MarshalXML renders the value back down to the XML structure
+func (t *Task) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if strings.Contains(t.Source, ":") {
+		e.EncodeElement(string(t.Source), start)
+	} else {
+		if t.TaskID == 0 {
+			e.EncodeElement(nil, start)
+			return nil
+		}
+		e.EncodeElement(strconv.Itoa(int(t.TaskID)), start)
+	}
+
+	return nil
+}
+
+//TODO: Marshaller implementation for moving back to XML -- Just represent the JOB ID. Won't work on de-duplicating back to string only
 
 //JobList is a slice of Jobs that is filterable and otherwise actionable via receiver.
 type JobList []Job
@@ -21,6 +80,7 @@ type Job struct {
 	StartTime      string   `xml:"JAT_start_time,omitempty" json:"start_time"`
 	SubmittedTime  string   `xml:"JB_submission_time,omitempty" json:"submitted_time"`
 	Slots          int32    `xml:"slots" json:"slots"`
+	Tasks          Task     `xml:"tasks,omitempty" json:"tasks,omitempty"`
 }
 
 //IsJobRunning returns a int (1 - running) (0 - not)
@@ -96,4 +156,75 @@ func (jl JobList) Sort(sorter func(i, j int) bool) JobList {
 	sort.Slice(jl[:], sorter)
 
 	return jl
+}
+
+//DoesJobContainTaskRange evaluates whether the XML marshalled tasks value contains the regex indicating a sequence of tasks.
+func DoesJobContainTaskRange(j Job) (bool, error) {
+	regex, err := regexp.Compile(TASKRANGEIDENTIFIERREGEX)
+
+	if err != nil {
+		return false, err
+	}
+
+	return regex.MatchString(j.Tasks.Source), nil
+}
+
+//ExtrapolateTasksToJobs takes the role of finding the range identifier and returning a job list from it (Extrapolated from the task list)
+func ExtrapolateTasksToJobs(original Job) (JobList, error) {
+	var jl JobList
+
+	ok, err := DoesJobContainTaskRange(original)
+
+	if err != nil {
+		return JobList{}, err
+	}
+
+	if !ok {
+		return JobList{}, errors.New("The provided job does not actually indicate a range of tasks")
+	}
+
+	r, err := regexp.Compile(TASKRANGEIDENTIFIERREGEX)
+
+	if err != nil {
+		return JobList{}, err
+	}
+
+	identifier := r.FindString(original.Tasks.Source)
+
+	pieces := strings.Split(identifier, ":")
+	rangeComponent := pieces[0]
+	incrementor := pieces[1]
+
+	rangePieces := strings.Split(rangeComponent, "-")
+	begin := rangePieces[0]
+	end := rangePieces[1]
+
+	//Get a mathematically usable value
+	intrementor, err := strconv.ParseInt(incrementor, 10, 64)
+
+	if err != nil {
+		return JobList{}, err
+	}
+
+	beginInt, err := strconv.ParseInt(begin, 10, 64)
+
+	if err != nil {
+		return JobList{}, err
+	}
+
+	endInt, err := strconv.ParseInt(end, 10, 64)
+
+	if err != nil {
+		return JobList{}, err
+	}
+
+	for i := beginInt; i <= endInt; i = i + intrementor {
+		lj := original
+
+		lj.Tasks.TaskID = i
+
+		jl = append(jl, lj)
+	}
+
+	return jl, nil
 }
