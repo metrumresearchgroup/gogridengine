@@ -62,8 +62,6 @@ func (t *Task) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return nil
 }
 
-//TODO: Marshaller implementation for moving back to XML -- Just represent the JOB ID. Won't work on de-duplicating back to string only
-
 //JobList is a slice of Jobs that is filterable and otherwise actionable via receiver.
 type JobList []Job
 
