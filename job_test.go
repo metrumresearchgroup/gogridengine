@@ -325,6 +325,14 @@ func TestExtrapolateTasksToJobs(t *testing.T) {
 	assert.Equal(t, int64(40), jl[0].Tasks.TaskID)
 	assert.Equal(t, int64(50), jl[len(jl)-1].Tasks.TaskID)
 
+	//Let's test some invalid job content
+
+	j.Tasks.Source = "meow-cat:jupiter"
+
+	jl, err = ExtrapolateTasksToJobs(j)
+
+	assert.Error(t, err)
+
 }
 
 func TestTaskDeSerialization(t *testing.T) {

@@ -205,24 +205,10 @@ func ExtrapolateTasksToJobs(original Job) (JobList, error) {
 	begin := rangePieces[0]
 	end := rangePieces[1]
 
-	//Get a mathematically usable value
-	intrementor, err := strconv.ParseInt(incrementor, 10, 64)
-
-	if err != nil {
-		return JobList{}, err
-	}
-
-	beginInt, err := strconv.ParseInt(begin, 10, 64)
-
-	if err != nil {
-		return JobList{}, err
-	}
-
-	endInt, err := strconv.ParseInt(end, 10, 64)
-
-	if err != nil {
-		return JobList{}, err
-	}
+	// Because we passed the regex to identify this earlier, there's no pathway to error here.
+	intrementor, _ := strconv.ParseInt(incrementor, 10, 64)
+	beginInt, _ := strconv.ParseInt(begin, 10, 64)
+	endInt, _ := strconv.ParseInt(end, 10, 64)
 
 	for i := beginInt; i <= endInt; i = i + intrementor {
 		lj := original
