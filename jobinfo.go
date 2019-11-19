@@ -17,7 +17,7 @@ const (
 )
 
 //TaskRangeRegex is the compiled regular expression used for identifying Tasks that define a pending / unscheduled range
-var TaskRangeRegex *regexp.Regexp
+var TaskRangeRegex *regexp.Regexp = regexp.MustCompile(TASKRANGEIDENTIFIERREGEX)
 
 //JobInfo is the top level object for the SGE Qstat output
 type JobInfo struct {
@@ -43,8 +43,6 @@ func (q JobInfo) GetXML() (string, error) {
 func NewJobInfo(input string) (JobInfo, error) {
 	var ji JobInfo
 	err := xml.Unmarshal([]byte(input), &ji)
-
-	TaskRangeRegex = regexp.MustCompile(TASKRANGEIDENTIFIERREGEX)
 
 	if err != nil {
 		return JobInfo{}, err

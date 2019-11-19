@@ -3,7 +3,6 @@ package gogridengine
 import (
 	"encoding/xml"
 	"errors"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -173,8 +172,6 @@ func DoesJobContainTaskRange(j Job) bool {
 //ExtrapolateTasksToJobs takes the role of finding the range identifier and returning a job list from it (Extrapolated from the task list)
 func ExtrapolateTasksToJobs(original Job) (JobList, error) {
 	var jl JobList
-	//Set the Regex up
-	TaskRangeRegex = regexp.MustCompile(TASKRANGEIDENTIFIERREGEX)
 
 	ok := DoesJobContainTaskRange(original)
 
