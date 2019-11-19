@@ -16,6 +16,9 @@ const (
 	TASKRANGEIDENTIFIERREGEX string = `[0-9]{1,}-[0-9]{1,}:[0-9]`
 )
 
+//ErrInvalidTaskRangeIdentifier is an error that identifies jobs with a non-range conformant task attribute. Basically means you're trying to extrapolate jobs from a task range that isn't really a task range.
+var ErrInvalidTaskRangeIdentifier error = errors.New("The provided job does not actually indicate a range of tasks")
+
 //Task is an element used for handling task arrays from the grid engine. Here we'll store the raw value (Source) and the TaskID if an individual identifier.
 type Task struct {
 	//Mixed type. Can be either a string representation of an int64 OR a string range identifier, eg: 40-55:1 (Jobs 40-55 incremented by 1)
@@ -163,37 +166,23 @@ func (jl JobList) Sort(sorter func(i, j int) bool) JobList {
 }
 
 //DoesJobContainTaskRange evaluates whether the XML marshalled tasks value contains the regex indicating a sequence of tasks.
-func DoesJobContainTaskRange(j Job) (bool, error) {
-	regex, err := regexp.Compile(TASKRANGEIDENTIFIERREGEX)
-
-	if err != nil {
-		return false, err
-	}
-
-	return regex.MatchString(j.Tasks.Source), nil
+func DoesJobContainTaskRange(j Job) bool {
+	return TaskRangeRegex.MatchString(j.Tasks.Source)
 }
 
 //ExtrapolateTasksToJobs takes the role of finding the range identifier and returning a job list from it (Extrapolated from the task list)
 func ExtrapolateTasksToJobs(original Job) (JobList, error) {
 	var jl JobList
+	//Set the Regex up
+	TaskRangeRegex = regexp.MustCompile(TASKRANGEIDENTIFIERREGEX)
 
-	ok, err := DoesJobContainTaskRange(original)
-
-	if err != nil {
-		return JobList{}, err
-	}
+	ok := DoesJobContainTaskRange(original)
 
 	if !ok {
-		return JobList{}, errors.New("The provided job does not actually indicate a range of tasks")
+		return JobList{}, ErrInvalidTaskRangeIdentifier
 	}
 
-	r, err := regexp.Compile(TASKRANGEIDENTIFIERREGEX)
-
-	if err != nil {
-		return JobList{}, err
-	}
-
-	identifier := r.FindString(original.Tasks.Source)
+	identifier := TaskRangeRegex.FindString(original.Tasks.Source)
 
 	pieces := strings.Split(identifier, ":")
 	rangeComponent := pieces[0]

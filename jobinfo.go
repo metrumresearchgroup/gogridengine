@@ -2,6 +2,7 @@ package gogridengine
 
 import (
 	"encoding/xml"
+	"regexp"
 	"sort"
 
 	log "github.com/sirupsen/logrus"
@@ -14,6 +15,9 @@ const (
 const (
 	environmentPrefix string = "GOGRIDENGINE_"
 )
+
+//TaskRangeRegex is the compiled regular expression used for identifying Tasks that define a pending / unscheduled range
+var TaskRangeRegex *regexp.Regexp
 
 //JobInfo is the top level object for the SGE Qstat output
 type JobInfo struct {
@@ -40,6 +44,8 @@ func NewJobInfo(input string) (JobInfo, error) {
 	var ji JobInfo
 	err := xml.Unmarshal([]byte(input), &ji)
 
+	TaskRangeRegex = regexp.MustCompile(TASKRANGEIDENTIFIERREGEX)
+
 	if err != nil {
 		return JobInfo{}, err
 	}
@@ -49,15 +55,7 @@ func NewJobInfo(input string) (JobInfo, error) {
 	//Handle extrapolation of pending tasks
 
 	for k, p := range ji.PendingJobs.JobList {
-
-		ok, err := DoesJobContainTaskRange(p)
-
-		if err != nil {
-			//Just move along and do nothing with this entry
-			continue
-		}
-
-		if ok {
+		if DoesJobContainTaskRange(p) {
 			//Mark for deletion and substitution
 			deleteTargets[k] = p
 		}

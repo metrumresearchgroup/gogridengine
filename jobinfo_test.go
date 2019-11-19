@@ -1178,6 +1178,85 @@ func TestNewJobInfo(t *testing.T) {
 
 	assert.Nil(t, err)
 
+	//Let's to Tasks 41, 75, 150
+	fortyone := Job{
+		JBJobNumber:    1006,
+		JATPriority:    0.55500,
+		JobName:        "task_array.sh",
+		JobOwner:       "darrellb",
+		State:          "qw",
+		StateAttribute: "pending",
+		XMLName: xml.Name{
+			Local: "job_list",
+		},
+		SubmittedTime: "2019-11-15T11:31:34",
+		Tasks: Task{
+			Source: "41-150:1",
+			TaskID: 41,
+		},
+		Slots: 1,
+	}
+
+	matched := FilterJobs(ji.PendingJobs.JobList, func(j Job) bool {
+		return j.Tasks.TaskID == 41
+	})
+
+	assert.NotEmpty(t, matched)
+	assert.Len(t, matched, 1)
+	assert.Equal(t, fortyone, matched[0])
+
+	seventyfive := Job{
+		JBJobNumber:    1006,
+		JATPriority:    0.55500,
+		JobName:        "task_array.sh",
+		JobOwner:       "darrellb",
+		State:          "qw",
+		StateAttribute: "pending",
+		XMLName: xml.Name{
+			Local: "job_list",
+		},
+		SubmittedTime: "2019-11-15T11:31:34",
+		Tasks: Task{
+			Source: "41-150:1",
+			TaskID: 75,
+		},
+		Slots: 1,
+	}
+
+	matched = FilterJobs(ji.PendingJobs.JobList, func(j Job) bool {
+		return j.Tasks.TaskID == 75
+	})
+
+	assert.NotEmpty(t, matched)
+	assert.Len(t, matched, 1)
+	assert.Equal(t, seventyfive, matched[0])
+
+	onefifty := Job{
+		JBJobNumber:    1006,
+		JATPriority:    0.55500,
+		JobName:        "task_array.sh",
+		JobOwner:       "darrellb",
+		State:          "qw",
+		StateAttribute: "pending",
+		XMLName: xml.Name{
+			Local: "job_list",
+		},
+		SubmittedTime: "2019-11-15T11:31:34",
+		Tasks: Task{
+			Source: "41-150:1",
+			TaskID: 150,
+		},
+		Slots: 1,
+	}
+
+	matched = FilterJobs(ji.PendingJobs.JobList, func(j Job) bool {
+		return j.Tasks.TaskID == 150
+	})
+
+	assert.NotEmpty(t, matched)
+	assert.Len(t, matched, 1)
+	assert.Equal(t, onefifty, matched[0])
+
 	assert.NotEmpty(t, ji.PendingJobs.JobList)
 	assert.Len(t, ji.PendingJobs.JobList, 110)
 	assert.Equal(t, int64(41), ji.PendingJobs.JobList[0].Tasks.TaskID)

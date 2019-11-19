@@ -332,6 +332,7 @@ func TestExtrapolateTasksToJobs(t *testing.T) {
 	jl, err = ExtrapolateTasksToJobs(j)
 
 	assert.Error(t, err)
+	assert.Equal(t, err, ErrInvalidTaskRangeIdentifier)
 
 }
 
