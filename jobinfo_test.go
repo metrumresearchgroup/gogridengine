@@ -4,6 +4,8 @@ import (
 	"encoding/xml"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDeSerializeSGEQStat(t *testing.T) {
@@ -282,8 +284,981 @@ func TestJobInfo_GetXML(t *testing.T) {
 				return
 			}
 			if got != tt.want {
+				println(got)
 				t.Errorf("JobInfo.GetXML() = %v, want %v", got, tt.want)
 			}
 		})
 	}
+}
+
+func TestDeserializingWithTasks(t *testing.T) {
+	input := `<?xml version='1.0'?>
+	<job_info  xmlns:xsd="http://arc.liv.ac.uk/repos/darcs/sge/source/dist/util/resources/schemas/qstat/qstat.xsd">
+	  <queue_info>
+		<Queue-List>
+		  <name>all.q@ip-10-0-1-113.ec2.internal</name>
+		  <qtype>BIP</qtype>
+		  <slots_used>8</slots_used>
+		  <slots_resv>0</slots_resv>
+		  <slots_total>8</slots_total>
+		  <load_avg>0.04000</load_avg>
+		  <arch>lx-amd64</arch>
+		  <resource name="load_avg" type="hl">0.040000</resource>
+		  <resource name="load_short" type="hl">0.040000</resource>
+		  <resource name="load_medium" type="hl">0.040000</resource>
+		  <resource name="load_long" type="hl">0.000000</resource>
+		  <resource name="arch" type="hl">lx-amd64</resource>
+		  <resource name="num_proc" type="hl">8</resource>
+		  <resource name="mem_free" type="hl">13.282G</resource>
+		  <resource name="swap_free" type="hl">0.000</resource>
+		  <resource name="virtual_free" type="hl">13.282G</resource>
+		  <resource name="mem_total" type="hl">14.686G</resource>
+		  <resource name="swap_total" type="hl">0.000</resource>
+		  <resource name="virtual_total" type="hl">14.686G</resource>
+		  <resource name="mem_used" type="hl">1.403G</resource>
+		  <resource name="swap_used" type="hl">0.000</resource>
+		  <resource name="virtual_used" type="hl">1.403G</resource>
+		  <resource name="cpu" type="hl">0.800000</resource>
+		  <resource name="m_topology" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_topology_inuse" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_socket" type="hl">1</resource>
+		  <resource name="m_core" type="hl">4</resource>
+		  <resource name="m_thread" type="hl">8</resource>
+		  <resource name="np_load_avg" type="hl">0.005000</resource>
+		  <resource name="np_load_short" type="hl">0.005000</resource>
+		  <resource name="np_load_medium" type="hl">0.005000</resource>
+		  <resource name="np_load_long" type="hl">0.000000</resource>
+		  <resource name="qname" type="qf">all.q</resource>
+		  <resource name="hostname" type="qf">ip-10-0-1-113.ec2.internal</resource>
+		  <resource name="slots" type="qc">0</resource>
+		  <resource name="tmpdir" type="qf">/tmp</resource>
+		  <resource name="seq_no" type="qf">0</resource>
+		  <resource name="rerun" type="qf">0.000000</resource>
+		  <resource name="calendar" type="qf">NONE</resource>
+		  <resource name="s_rt" type="qf">infinity</resource>
+		  <resource name="h_rt" type="qf">infinity</resource>
+		  <resource name="s_cpu" type="qf">infinity</resource>
+		  <resource name="h_cpu" type="qf">infinity</resource>
+		  <resource name="s_fsize" type="qf">infinity</resource>
+		  <resource name="h_fsize" type="qf">infinity</resource>
+		  <resource name="s_data" type="qf">infinity</resource>
+		  <resource name="h_data" type="qf">infinity</resource>
+		  <resource name="s_stack" type="qf">infinity</resource>
+		  <resource name="h_stack" type="qf">infinity</resource>
+		  <resource name="s_core" type="qf">infinity</resource>
+		  <resource name="h_core" type="qf">infinity</resource>
+		  <resource name="s_rss" type="qf">infinity</resource>
+		  <resource name="h_rss" type="qf">infinity</resource>
+		  <resource name="s_vmem" type="qf">infinity</resource>
+		  <resource name="h_vmem" type="qf">infinity</resource>
+		  <resource name="min_cpu_interval" type="qf">00:05:00</resource>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>1</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>7</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>11</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>17</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>21</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>27</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>31</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>37</tasks>
+		  </job_list>
+		</Queue-List>
+		<Queue-List>
+		  <name>all.q@ip-10-0-1-127.ec2.internal</name>
+		  <qtype>BIP</qtype>
+		  <slots_used>8</slots_used>
+		  <slots_resv>0</slots_resv>
+		  <slots_total>8</slots_total>
+		  <load_avg>0.05000</load_avg>
+		  <arch>lx-amd64</arch>
+		  <resource name="load_avg" type="hl">0.050000</resource>
+		  <resource name="load_short" type="hl">0.020000</resource>
+		  <resource name="load_medium" type="hl">0.050000</resource>
+		  <resource name="load_long" type="hl">0.020000</resource>
+		  <resource name="arch" type="hl">lx-amd64</resource>
+		  <resource name="num_proc" type="hl">8</resource>
+		  <resource name="mem_free" type="hl">13.282G</resource>
+		  <resource name="swap_free" type="hl">0.000</resource>
+		  <resource name="virtual_free" type="hl">13.282G</resource>
+		  <resource name="mem_total" type="hl">14.686G</resource>
+		  <resource name="swap_total" type="hl">0.000</resource>
+		  <resource name="virtual_total" type="hl">14.686G</resource>
+		  <resource name="mem_used" type="hl">1.404G</resource>
+		  <resource name="swap_used" type="hl">0.000</resource>
+		  <resource name="virtual_used" type="hl">1.404G</resource>
+		  <resource name="cpu" type="hl">0.800000</resource>
+		  <resource name="m_topology" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_topology_inuse" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_socket" type="hl">1</resource>
+		  <resource name="m_core" type="hl">4</resource>
+		  <resource name="m_thread" type="hl">8</resource>
+		  <resource name="np_load_avg" type="hl">0.006250</resource>
+		  <resource name="np_load_short" type="hl">0.002500</resource>
+		  <resource name="np_load_medium" type="hl">0.006250</resource>
+		  <resource name="np_load_long" type="hl">0.002500</resource>
+		  <resource name="qname" type="qf">all.q</resource>
+		  <resource name="hostname" type="qf">ip-10-0-1-127.ec2.internal</resource>
+		  <resource name="slots" type="qc">0</resource>
+		  <resource name="tmpdir" type="qf">/tmp</resource>
+		  <resource name="seq_no" type="qf">0</resource>
+		  <resource name="rerun" type="qf">0.000000</resource>
+		  <resource name="calendar" type="qf">NONE</resource>
+		  <resource name="s_rt" type="qf">infinity</resource>
+		  <resource name="h_rt" type="qf">infinity</resource>
+		  <resource name="s_cpu" type="qf">infinity</resource>
+		  <resource name="h_cpu" type="qf">infinity</resource>
+		  <resource name="s_fsize" type="qf">infinity</resource>
+		  <resource name="h_fsize" type="qf">infinity</resource>
+		  <resource name="s_data" type="qf">infinity</resource>
+		  <resource name="h_data" type="qf">infinity</resource>
+		  <resource name="s_stack" type="qf">infinity</resource>
+		  <resource name="h_stack" type="qf">infinity</resource>
+		  <resource name="s_core" type="qf">infinity</resource>
+		  <resource name="h_core" type="qf">infinity</resource>
+		  <resource name="s_rss" type="qf">infinity</resource>
+		  <resource name="h_rss" type="qf">infinity</resource>
+		  <resource name="s_vmem" type="qf">infinity</resource>
+		  <resource name="h_vmem" type="qf">infinity</resource>
+		  <resource name="min_cpu_interval" type="qf">00:05:00</resource>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>3</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>9</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>13</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>19</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>23</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>29</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>33</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>39</tasks>
+		  </job_list>
+		</Queue-List>
+		<Queue-List>
+		  <name>all.q@ip-10-0-1-193.ec2.internal</name>
+		  <qtype>BIP</qtype>
+		  <slots_used>8</slots_used>
+		  <slots_resv>0</slots_resv>
+		  <slots_total>8</slots_total>
+		  <load_avg>0.06000</load_avg>
+		  <arch>lx-amd64</arch>
+		  <resource name="load_avg" type="hl">0.060000</resource>
+		  <resource name="load_short" type="hl">0.050000</resource>
+		  <resource name="load_medium" type="hl">0.060000</resource>
+		  <resource name="load_long" type="hl">0.010000</resource>
+		  <resource name="arch" type="hl">lx-amd64</resource>
+		  <resource name="num_proc" type="hl">8</resource>
+		  <resource name="mem_free" type="hl">13.250G</resource>
+		  <resource name="swap_free" type="hl">0.000</resource>
+		  <resource name="virtual_free" type="hl">13.250G</resource>
+		  <resource name="mem_total" type="hl">14.686G</resource>
+		  <resource name="swap_total" type="hl">0.000</resource>
+		  <resource name="virtual_total" type="hl">14.686G</resource>
+		  <resource name="mem_used" type="hl">1.435G</resource>
+		  <resource name="swap_used" type="hl">0.000</resource>
+		  <resource name="virtual_used" type="hl">1.435G</resource>
+		  <resource name="cpu" type="hl">1.100000</resource>
+		  <resource name="m_topology" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_topology_inuse" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_socket" type="hl">1</resource>
+		  <resource name="m_core" type="hl">4</resource>
+		  <resource name="m_thread" type="hl">8</resource>
+		  <resource name="np_load_avg" type="hl">0.007500</resource>
+		  <resource name="np_load_short" type="hl">0.006250</resource>
+		  <resource name="np_load_medium" type="hl">0.007500</resource>
+		  <resource name="np_load_long" type="hl">0.001250</resource>
+		  <resource name="qname" type="qf">all.q</resource>
+		  <resource name="hostname" type="qf">ip-10-0-1-193.ec2.internal</resource>
+		  <resource name="slots" type="qc">0</resource>
+		  <resource name="tmpdir" type="qf">/tmp</resource>
+		  <resource name="seq_no" type="qf">0</resource>
+		  <resource name="rerun" type="qf">0.000000</resource>
+		  <resource name="calendar" type="qf">NONE</resource>
+		  <resource name="s_rt" type="qf">infinity</resource>
+		  <resource name="h_rt" type="qf">infinity</resource>
+		  <resource name="s_cpu" type="qf">infinity</resource>
+		  <resource name="h_cpu" type="qf">infinity</resource>
+		  <resource name="s_fsize" type="qf">infinity</resource>
+		  <resource name="h_fsize" type="qf">infinity</resource>
+		  <resource name="s_data" type="qf">infinity</resource>
+		  <resource name="h_data" type="qf">infinity</resource>
+		  <resource name="s_stack" type="qf">infinity</resource>
+		  <resource name="h_stack" type="qf">infinity</resource>
+		  <resource name="s_core" type="qf">infinity</resource>
+		  <resource name="h_core" type="qf">infinity</resource>
+		  <resource name="s_rss" type="qf">infinity</resource>
+		  <resource name="h_rss" type="qf">infinity</resource>
+		  <resource name="s_vmem" type="qf">infinity</resource>
+		  <resource name="h_vmem" type="qf">infinity</resource>
+		  <resource name="min_cpu_interval" type="qf">00:05:00</resource>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>2</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>6</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>12</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>16</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>22</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>26</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>32</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>36</tasks>
+		  </job_list>
+		</Queue-List>
+		<Queue-List>
+		  <name>all.q@ip-10-0-1-44.ec2.internal</name>
+		  <qtype>BIP</qtype>
+		  <slots_used>8</slots_used>
+		  <slots_resv>0</slots_resv>
+		  <slots_total>8</slots_total>
+		  <load_avg>0.05000</load_avg>
+		  <arch>lx-amd64</arch>
+		  <resource name="load_avg" type="hl">0.050000</resource>
+		  <resource name="load_short" type="hl">0.040000</resource>
+		  <resource name="load_medium" type="hl">0.050000</resource>
+		  <resource name="load_long" type="hl">0.020000</resource>
+		  <resource name="arch" type="hl">lx-amd64</resource>
+		  <resource name="num_proc" type="hl">8</resource>
+		  <resource name="mem_free" type="hl">13.280G</resource>
+		  <resource name="swap_free" type="hl">0.000</resource>
+		  <resource name="virtual_free" type="hl">13.280G</resource>
+		  <resource name="mem_total" type="hl">14.686G</resource>
+		  <resource name="swap_total" type="hl">0.000</resource>
+		  <resource name="virtual_total" type="hl">14.686G</resource>
+		  <resource name="mem_used" type="hl">1.406G</resource>
+		  <resource name="swap_used" type="hl">0.000</resource>
+		  <resource name="virtual_used" type="hl">1.406G</resource>
+		  <resource name="cpu" type="hl">0.800000</resource>
+		  <resource name="m_topology" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_topology_inuse" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_socket" type="hl">1</resource>
+		  <resource name="m_core" type="hl">4</resource>
+		  <resource name="m_thread" type="hl">8</resource>
+		  <resource name="np_load_avg" type="hl">0.006250</resource>
+		  <resource name="np_load_short" type="hl">0.005000</resource>
+		  <resource name="np_load_medium" type="hl">0.006250</resource>
+		  <resource name="np_load_long" type="hl">0.002500</resource>
+		  <resource name="qname" type="qf">all.q</resource>
+		  <resource name="hostname" type="qf">ip-10-0-1-44.ec2.internal</resource>
+		  <resource name="slots" type="qc">0</resource>
+		  <resource name="tmpdir" type="qf">/tmp</resource>
+		  <resource name="seq_no" type="qf">0</resource>
+		  <resource name="rerun" type="qf">0.000000</resource>
+		  <resource name="calendar" type="qf">NONE</resource>
+		  <resource name="s_rt" type="qf">infinity</resource>
+		  <resource name="h_rt" type="qf">infinity</resource>
+		  <resource name="s_cpu" type="qf">infinity</resource>
+		  <resource name="h_cpu" type="qf">infinity</resource>
+		  <resource name="s_fsize" type="qf">infinity</resource>
+		  <resource name="h_fsize" type="qf">infinity</resource>
+		  <resource name="s_data" type="qf">infinity</resource>
+		  <resource name="h_data" type="qf">infinity</resource>
+		  <resource name="s_stack" type="qf">infinity</resource>
+		  <resource name="h_stack" type="qf">infinity</resource>
+		  <resource name="s_core" type="qf">infinity</resource>
+		  <resource name="h_core" type="qf">infinity</resource>
+		  <resource name="s_rss" type="qf">infinity</resource>
+		  <resource name="h_rss" type="qf">infinity</resource>
+		  <resource name="s_vmem" type="qf">infinity</resource>
+		  <resource name="h_vmem" type="qf">infinity</resource>
+		  <resource name="min_cpu_interval" type="qf">00:05:00</resource>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>4</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>8</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>14</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>18</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>24</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>28</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>34</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>38</tasks>
+		  </job_list>
+		</Queue-List>
+		<Queue-List>
+		  <name>all.q@ip-10-0-1-80.ec2.internal</name>
+		  <qtype>BIP</qtype>
+		  <slots_used>8</slots_used>
+		  <slots_resv>0</slots_resv>
+		  <slots_total>8</slots_total>
+		  <load_avg>0.06000</load_avg>
+		  <arch>lx-amd64</arch>
+		  <resource name="load_avg" type="hl">0.060000</resource>
+		  <resource name="load_short" type="hl">0.090000</resource>
+		  <resource name="load_medium" type="hl">0.060000</resource>
+		  <resource name="load_long" type="hl">0.010000</resource>
+		  <resource name="arch" type="hl">lx-amd64</resource>
+		  <resource name="num_proc" type="hl">8</resource>
+		  <resource name="mem_free" type="hl">13.251G</resource>
+		  <resource name="swap_free" type="hl">0.000</resource>
+		  <resource name="virtual_free" type="hl">13.251G</resource>
+		  <resource name="mem_total" type="hl">14.686G</resource>
+		  <resource name="swap_total" type="hl">0.000</resource>
+		  <resource name="virtual_total" type="hl">14.686G</resource>
+		  <resource name="mem_used" type="hl">1.435G</resource>
+		  <resource name="swap_used" type="hl">0.000</resource>
+		  <resource name="virtual_used" type="hl">1.435G</resource>
+		  <resource name="cpu" type="hl">0.800000</resource>
+		  <resource name="m_topology" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_topology_inuse" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_socket" type="hl">1</resource>
+		  <resource name="m_core" type="hl">4</resource>
+		  <resource name="m_thread" type="hl">8</resource>
+		  <resource name="np_load_avg" type="hl">0.007500</resource>
+		  <resource name="np_load_short" type="hl">0.011250</resource>
+		  <resource name="np_load_medium" type="hl">0.007500</resource>
+		  <resource name="np_load_long" type="hl">0.001250</resource>
+		  <resource name="qname" type="qf">all.q</resource>
+		  <resource name="hostname" type="qf">ip-10-0-1-80.ec2.internal</resource>
+		  <resource name="slots" type="qc">0</resource>
+		  <resource name="tmpdir" type="qf">/tmp</resource>
+		  <resource name="seq_no" type="qf">0</resource>
+		  <resource name="rerun" type="qf">0.000000</resource>
+		  <resource name="calendar" type="qf">NONE</resource>
+		  <resource name="s_rt" type="qf">infinity</resource>
+		  <resource name="h_rt" type="qf">infinity</resource>
+		  <resource name="s_cpu" type="qf">infinity</resource>
+		  <resource name="h_cpu" type="qf">infinity</resource>
+		  <resource name="s_fsize" type="qf">infinity</resource>
+		  <resource name="h_fsize" type="qf">infinity</resource>
+		  <resource name="s_data" type="qf">infinity</resource>
+		  <resource name="h_data" type="qf">infinity</resource>
+		  <resource name="s_stack" type="qf">infinity</resource>
+		  <resource name="h_stack" type="qf">infinity</resource>
+		  <resource name="s_core" type="qf">infinity</resource>
+		  <resource name="h_core" type="qf">infinity</resource>
+		  <resource name="s_rss" type="qf">infinity</resource>
+		  <resource name="h_rss" type="qf">infinity</resource>
+		  <resource name="s_vmem" type="qf">infinity</resource>
+		  <resource name="h_vmem" type="qf">infinity</resource>
+		  <resource name="min_cpu_interval" type="qf">00:05:00</resource>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>5</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>10</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>15</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>20</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>25</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>30</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>35</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>40</tasks>
+		  </job_list>
+		</Queue-List>
+	  </queue_info>
+	  <job_info>
+		<job_list state="pending">
+		  <JB_job_number>1006</JB_job_number>
+		  <JAT_prio>0.55500</JAT_prio>
+		  <JB_name>task_array.sh</JB_name>
+		  <JB_owner>darrellb</JB_owner>
+		  <state>qw</state>
+		  <JB_submission_time>2019-11-15T11:31:34</JB_submission_time>
+		  <slots>1</slots>
+		  <tasks>41-150:1</tasks>
+		</job_list>
+	  </job_info>
+	</job_info>`
+
+	var ji JobInfo
+
+	xml.Unmarshal([]byte(input), &ji)
+
+	assert.NotEmpty(t, ji)
+
+	for _, q := range ji.QueueInfo.Queues {
+		for _, j := range q.JobList {
+			assert.True(t, j.Tasks.Source != "")
+		}
+	}
+
+	for _, q := range ji.PendingJobs.JobList {
+		assert.True(t, q.Tasks.Source != "")
+	}
+}
+
+func TestNewJobInfo(t *testing.T) {
+	input := `<?xml version='1.0'?>
+	<job_info  xmlns:xsd="http://arc.liv.ac.uk/repos/darcs/sge/source/dist/util/resources/schemas/qstat/qstat.xsd">
+	  <queue_info>
+		<Queue-List>
+		  <name>all.q@ip-10-0-1-80.ec2.internal</name>
+		  <qtype>BIP</qtype>
+		  <slots_used>8</slots_used>
+		  <slots_resv>0</slots_resv>
+		  <slots_total>8</slots_total>
+		  <load_avg>0.06000</load_avg>
+		  <arch>lx-amd64</arch>
+		  <resource name="load_avg" type="hl">0.060000</resource>
+		  <resource name="load_short" type="hl">0.090000</resource>
+		  <resource name="load_medium" type="hl">0.060000</resource>
+		  <resource name="load_long" type="hl">0.010000</resource>
+		  <resource name="arch" type="hl">lx-amd64</resource>
+		  <resource name="num_proc" type="hl">8</resource>
+		  <resource name="mem_free" type="hl">13.251G</resource>
+		  <resource name="swap_free" type="hl">0.000</resource>
+		  <resource name="virtual_free" type="hl">13.251G</resource>
+		  <resource name="mem_total" type="hl">14.686G</resource>
+		  <resource name="swap_total" type="hl">0.000</resource>
+		  <resource name="virtual_total" type="hl">14.686G</resource>
+		  <resource name="mem_used" type="hl">1.435G</resource>
+		  <resource name="swap_used" type="hl">0.000</resource>
+		  <resource name="virtual_used" type="hl">1.435G</resource>
+		  <resource name="cpu" type="hl">0.800000</resource>
+		  <resource name="m_topology" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_topology_inuse" type="hl">SCTTCTTCTTCTT</resource>
+		  <resource name="m_socket" type="hl">1</resource>
+		  <resource name="m_core" type="hl">4</resource>
+		  <resource name="m_thread" type="hl">8</resource>
+		  <resource name="np_load_avg" type="hl">0.007500</resource>
+		  <resource name="np_load_short" type="hl">0.011250</resource>
+		  <resource name="np_load_medium" type="hl">0.007500</resource>
+		  <resource name="np_load_long" type="hl">0.001250</resource>
+		  <resource name="qname" type="qf">all.q</resource>
+		  <resource name="hostname" type="qf">ip-10-0-1-80.ec2.internal</resource>
+		  <resource name="slots" type="qc">0</resource>
+		  <resource name="tmpdir" type="qf">/tmp</resource>
+		  <resource name="seq_no" type="qf">0</resource>
+		  <resource name="rerun" type="qf">0.000000</resource>
+		  <resource name="calendar" type="qf">NONE</resource>
+		  <resource name="s_rt" type="qf">infinity</resource>
+		  <resource name="h_rt" type="qf">infinity</resource>
+		  <resource name="s_cpu" type="qf">infinity</resource>
+		  <resource name="h_cpu" type="qf">infinity</resource>
+		  <resource name="s_fsize" type="qf">infinity</resource>
+		  <resource name="h_fsize" type="qf">infinity</resource>
+		  <resource name="s_data" type="qf">infinity</resource>
+		  <resource name="h_data" type="qf">infinity</resource>
+		  <resource name="s_stack" type="qf">infinity</resource>
+		  <resource name="h_stack" type="qf">infinity</resource>
+		  <resource name="s_core" type="qf">infinity</resource>
+		  <resource name="h_core" type="qf">infinity</resource>
+		  <resource name="s_rss" type="qf">infinity</resource>
+		  <resource name="h_rss" type="qf">infinity</resource>
+		  <resource name="s_vmem" type="qf">infinity</resource>
+		  <resource name="h_vmem" type="qf">infinity</resource>
+		  <resource name="min_cpu_interval" type="qf">00:05:00</resource>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>5</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>10</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>15</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>20</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>25</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>30</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>35</tasks>
+		  </job_list>
+		  <job_list state="running">
+			<JB_job_number>1006</JB_job_number>
+			<JAT_prio>0.55500</JAT_prio>
+			<JB_name>task_array.sh</JB_name>
+			<JB_owner>darrellb</JB_owner>
+			<state>r</state>
+			<JAT_start_time>2019-11-15T11:31:47</JAT_start_time>
+			<slots>1</slots>
+			<tasks>40</tasks>
+		  </job_list>
+		</Queue-List>
+	  </queue_info>
+	  <job_info>
+		<job_list state="pending">
+		  <JB_job_number>1006</JB_job_number>
+		  <JAT_prio>0.55500</JAT_prio>
+		  <JB_name>task_array.sh</JB_name>
+		  <JB_owner>darrellb</JB_owner>
+		  <state>qw</state>
+		  <JB_submission_time>2019-11-15T11:31:34</JB_submission_time>
+		  <slots>1</slots>
+		  <tasks>41-150:1</tasks>
+		</job_list>
+	  </job_info>
+	</job_info>`
+
+	ji, err := NewJobInfo(input)
+
+	assert.Nil(t, err)
+
+	//Let's to Tasks 41, 75, 150
+	fortyone := Job{
+		JBJobNumber:    1006,
+		JATPriority:    0.55500,
+		JobName:        "task_array.sh",
+		JobOwner:       "darrellb",
+		State:          "qw",
+		StateAttribute: "pending",
+		XMLName: xml.Name{
+			Local: "job_list",
+		},
+		SubmittedTime: "2019-11-15T11:31:34",
+		Tasks: Task{
+			Source: "41-150:1",
+			TaskID: 41,
+		},
+		Slots: 1,
+	}
+
+	matched := FilterJobs(ji.PendingJobs.JobList, func(j Job) bool {
+		return j.Tasks.TaskID == 41
+	})
+
+	assert.NotEmpty(t, matched)
+	assert.Len(t, matched, 1)
+	assert.Equal(t, fortyone, matched[0])
+
+	seventyfive := Job{
+		JBJobNumber:    1006,
+		JATPriority:    0.55500,
+		JobName:        "task_array.sh",
+		JobOwner:       "darrellb",
+		State:          "qw",
+		StateAttribute: "pending",
+		XMLName: xml.Name{
+			Local: "job_list",
+		},
+		SubmittedTime: "2019-11-15T11:31:34",
+		Tasks: Task{
+			Source: "41-150:1",
+			TaskID: 75,
+		},
+		Slots: 1,
+	}
+
+	matched = FilterJobs(ji.PendingJobs.JobList, func(j Job) bool {
+		return j.Tasks.TaskID == 75
+	})
+
+	assert.NotEmpty(t, matched)
+	assert.Len(t, matched, 1)
+	assert.Equal(t, seventyfive, matched[0])
+
+	onefifty := Job{
+		JBJobNumber:    1006,
+		JATPriority:    0.55500,
+		JobName:        "task_array.sh",
+		JobOwner:       "darrellb",
+		State:          "qw",
+		StateAttribute: "pending",
+		XMLName: xml.Name{
+			Local: "job_list",
+		},
+		SubmittedTime: "2019-11-15T11:31:34",
+		Tasks: Task{
+			Source: "41-150:1",
+			TaskID: 150,
+		},
+		Slots: 1,
+	}
+
+	matched = FilterJobs(ji.PendingJobs.JobList, func(j Job) bool {
+		return j.Tasks.TaskID == 150
+	})
+
+	assert.NotEmpty(t, matched)
+	assert.Len(t, matched, 1)
+	assert.Equal(t, onefifty, matched[0])
+
+	assert.NotEmpty(t, ji.PendingJobs.JobList)
+	assert.Len(t, ji.PendingJobs.JobList, 110)
+	assert.Equal(t, int64(41), ji.PendingJobs.JobList[0].Tasks.TaskID)
+	assert.Equal(t, int64(150), ji.PendingJobs.JobList[len(ji.PendingJobs.JobList)-1].Tasks.TaskID)
 }

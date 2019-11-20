@@ -2,6 +2,10 @@ package gogridengine
 
 import (
 	"encoding/xml"
+	"regexp"
+	"sort"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -11,6 +15,9 @@ const (
 const (
 	environmentPrefix string = "GOGRIDENGINE_"
 )
+
+//TaskRangeRegex is the compiled regular expression used for identifying Tasks that define a pending / unscheduled range
+var TaskRangeRegex *regexp.Regexp = regexp.MustCompile(TASKRANGEIDENTIFIERREGEX)
 
 //JobInfo is the top level object for the SGE Qstat output
 type JobInfo struct {
@@ -32,19 +39,50 @@ func (q JobInfo) GetXML() (string, error) {
 	return formatted, nil
 }
 
-//GetJobInfo returns the go struct of the qstat output
-func GetJobInfo() (JobInfo, error) {
-	j, err := GetQstatOutput(make(map[string]string))
+//NewJobInfo returns the go struct of the qstat output
+func NewJobInfo(input string) (JobInfo, error) {
+	var ji JobInfo
+	err := xml.Unmarshal([]byte(input), &ji)
+
 	if err != nil {
 		return JobInfo{}, err
 	}
 
-	var ji JobInfo
+	deleteTargets := make(map[int]Job)
 
-	err = xml.Unmarshal([]byte(j), &ji)
+	//Handle extrapolation of pending tasks
 
-	if err != nil {
-		return JobInfo{}, err
+	for k, p := range ji.PendingJobs.JobList {
+		if DoesJobContainTaskRange(p) {
+			//Mark for deletion and substitution
+			deleteTargets[k] = p
+		}
+	}
+
+	//If anything comes up as an extrapolatable task list, we need to extrapolate to multiple job entries and remove the original listing.
+	if len(deleteTargets) > 0 {
+		//Reiterate over collected jobs to cleanup and reconstruct
+		for k, p := range deleteTargets {
+
+			jobs, err := ExtrapolateTasksToJobs(p)
+
+			if err != nil {
+				//We can't do anything with this entry. Just continue along
+				log.Error("An error occurred trying to extrapolate Task range into JobList", err)
+				continue
+			}
+
+			//Remove the target Job
+			ji.PendingJobs.JobList = append(ji.PendingJobs.JobList[:k], ji.PendingJobs.JobList[k+1:]...)
+
+			//Append Extrapolated Jobs
+			ji.PendingJobs.JobList = append(ji.PendingJobs.JobList, jobs...)
+		}
+
+		//Sort the slice after all the shuffling By Job Number and Task IDß
+		sort.Slice(ji.PendingJobs.JobList, func(i, j int) bool {
+			return ji.PendingJobs.JobList[i].JBJobNumber < ji.PendingJobs.JobList[j].JBJobNumber && ji.PendingJobs.JobList[i].Tasks.TaskID < ji.PendingJobs.JobList[j].Tasks.TaskID
+		})
 	}
 
 	return ji, nil
