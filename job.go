@@ -16,7 +16,7 @@ const (
 )
 
 //ErrInvalidTaskRangeIdentifier is an error that identifies jobs with a non-range conformant task attribute. Basically means you're trying to extrapolate jobs from a task range that isn't really a task range.
-var ErrInvalidTaskRangeIdentifier error = errors.New("The provided job does not actually indicate a range of tasks")
+var ErrInvalidTaskRangeIdentifier error = errors.New("The provided job does not actually indicate a range or group of tasks")
 
 //Task is an element used for handling task arrays from the grid engine. Here we'll store the raw value (Source) and the TaskID if an individual identifier.
 type Task struct {
@@ -169,38 +169,64 @@ func DoesJobContainTaskRange(j Job) bool {
 	return TaskRangeRegex.MatchString(j.Tasks.Source)
 }
 
+func DoesJobContainTaskGroup(j Job) bool {
+	return strings.Contains(j.Tasks.Source, ",")
+}
+
 //ExtrapolateTasksToJobs takes the role of finding the range identifier and returning a job list from it (Extrapolated from the task list)
 func ExtrapolateTasksToJobs(original Job) (JobList, error) {
 	var jl JobList
 
-	ok := DoesJobContainTaskRange(original)
+	ranged := DoesJobContainTaskRange(original)
+	group := DoesJobContainTaskGroup(original)
 
-	if !ok {
+	if !ranged && !group {
 		return JobList{}, ErrInvalidTaskRangeIdentifier
 	}
 
-	identifier := TaskRangeRegex.FindString(original.Tasks.Source)
+	if ranged {
+		identifier := TaskRangeRegex.FindString(original.Tasks.Source)
 
-	pieces := strings.Split(identifier, ":")
-	rangeComponent := pieces[0]
-	incrementor := pieces[1]
+		pieces := strings.Split(identifier, ":")
+		rangeComponent := pieces[0]
+		incrementor := pieces[1]
 
-	rangePieces := strings.Split(rangeComponent, "-")
-	begin := rangePieces[0]
-	end := rangePieces[1]
+		rangePieces := strings.Split(rangeComponent, "-")
+		begin := rangePieces[0]
+		end := rangePieces[1]
 
-	// Because we passed the regex to identify this earlier, there's no pathway to error here.
-	intrementor, _ := strconv.ParseInt(incrementor, 10, 64)
-	beginInt, _ := strconv.ParseInt(begin, 10, 64)
-	endInt, _ := strconv.ParseInt(end, 10, 64)
+		// Because we passed the regex to identify this earlier, there's no pathway to error here.
+		intrementor, _ := strconv.ParseInt(incrementor, 10, 64)
+		beginInt, _ := strconv.ParseInt(begin, 10, 64)
+		endInt, _ := strconv.ParseInt(end, 10, 64)
 
-	for i := beginInt; i <= endInt; i = i + intrementor {
-		lj := original
+		for i := beginInt; i <= endInt; i = i + intrementor {
+			lj := original
 
-		lj.Tasks.TaskID = i
+			lj.Tasks.TaskID = i
 
-		jl = append(jl, lj)
+			jl = append(jl, lj)
+		}
+
+	}
+
+	if group {
+		pieces := strings.Split(original.Tasks.Source, ",")
+
+		for _, v := range pieces {
+			gj := original
+			taskID, err := strconv.Atoi(v)
+
+			if err != nil {
+				return JobList{}, err
+			}
+
+			gj.Tasks.TaskID = int64(taskID)
+
+			jl = append(jl, gj)
+		}
 	}
 
 	return jl, nil
+
 }

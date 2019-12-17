@@ -499,7 +499,7 @@ func TestTaskDeSerialization(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestTaskSerialization(t *testing.T) {
+func TestTaskRangeSerialization(t *testing.T) {
 
 	//Normal
 	ji := JobInfo{
@@ -555,4 +555,81 @@ func TestTaskSerialization(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Contains(t, string(x), "<tasks>123</tasks>")
+}
+
+func TestTaskGroupExtrapolation(t *testing.T) {
+
+	//Normal
+	ji := JobInfo{
+		QueueInfo: QueueInfo{
+			Queues: []Host{
+				{
+					Name: "Oh hai",
+					JobList: []Job{
+						{
+							JBJobNumber: 100,
+							Tasks: Task{
+								Source: "10,11,13",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	nji, err := ExtrapolateTasksToJobs(ji.QueueInfo.Queues[0].JobList[0])
+
+	assert.Nil(t, err)
+	assert.NotEmpty(t, nji)
+	assert.Len(t, nji, 3)
+
+	ji = JobInfo{
+		QueueInfo: QueueInfo{
+			Queues: []Host{
+				{
+					Name: "Oh hai",
+					JobList: []Job{
+						{
+							JBJobNumber: 100,
+							Tasks: Task{
+								Source: "10-15:1",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	nji, err = ExtrapolateTasksToJobs(ji.QueueInfo.Queues[0].JobList[0])
+
+	assert.Nil(t, err)
+	assert.Len(t, nji, 6)
+
+	//Test for failure components. IE a split value in a group that can't be converted to a number
+	//Normal
+	ji = JobInfo{
+		QueueInfo: QueueInfo{
+			Queues: []Host{
+				{
+					Name: "Oh hai",
+					JobList: []Job{
+						{
+							JBJobNumber: 100,
+							Tasks: Task{
+								Source: "10,dog,()",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	nji, err = ExtrapolateTasksToJobs(ji.QueueInfo.Queues[0].JobList[0])
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
 }
