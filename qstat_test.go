@@ -1,6 +1,7 @@
 package gogridengine
 
 import (
+	"encoding/xml"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -208,4 +209,17 @@ func Test_generatedQstatOputput(t *testing.T) {
 	output, _ := generatedQstatOputput()
 	assert.NotEmpty(t, output)
 
+}
+
+func Test_Select_Source_For_Test(t *testing.T) {
+	os.Setenv("GOGRIDENGINE_TEST", "true")
+	os.Setenv("GOGRIDENGINE_TEST_SOURCE", "https://gist.githubusercontent.com/shairozan/03f6f6123b11483bb17fd2c6ee95c338/raw/d65e6d603e7563b7307f9b045171ea7693c95f40/small_sge.xml")
+
+	out, _ := GetQstatOutput(make(map[string]string))
+	ji := JobInfo{}
+	xml.Unmarshal([]byte(out), &ji)
+
+	assert.NotEmpty(t, ji)
+	assert.NotNil(t, ji)
+	assert.Equal(t, ji.QueueInfo.Queues[0].JobList[0].JBJobNumber, int64(612))
 }

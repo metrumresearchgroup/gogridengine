@@ -169,6 +169,7 @@ func DoesJobContainTaskRange(j Job) bool {
 	return TaskRangeRegex.MatchString(j.Tasks.Source)
 }
 
+//DoesJobContainTaskGroup evaluates whether the XML marshalled tasks value contains a group rather than a range of tasks
 func DoesJobContainTaskGroup(j Job) bool {
 	return strings.Contains(j.Tasks.Source, ",")
 }

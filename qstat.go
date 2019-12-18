@@ -191,7 +191,14 @@ func buildQstatArgumentList(filters map[string]string) []string {
 func generatedQstatOputput() (string, error) {
 	//Get the medium XML file from the master repo
 
-	xmlresponse, err := http.Get("https://raw.githubusercontent.com/metrumresearchgroup/gogridengine/master/test_data/medium.xml")
+	//Default
+	xmlsource := "https://raw.githubusercontent.com/metrumresearchgroup/gogridengine/master/test_data/medium.xml"
+
+	if os.Getenv("GOGRIDENGINE_TEST_SOURCE") != "" {
+		xmlsource = os.Getenv("GOGRIDENGINE_TEST_SOURCE")
+	}
+
+	xmlresponse, err := http.Get(xmlsource)
 
 	if err != nil {
 		return "", err

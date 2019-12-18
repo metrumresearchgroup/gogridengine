@@ -89,3 +89,7 @@ source := `<?xml version='1.0'?>
 	var info JobInfo
 	xml.Unmarshal([]byte(source), &info)
 ```
+
+#Environment Variables
+GOGRIDENGINE_TEST : If set to "true", will trigger test mode where the library will look to generated content and not try to use qstat
+GOGRIDENGINE_TEST_SOURCE: If set, should be a URL to XML from `qstat -xml` output which will be used for testing
