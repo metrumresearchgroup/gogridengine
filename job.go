@@ -2,7 +2,6 @@ package gogridengine
 
 import (
 	"encoding/xml"
-	"errors"
 	"sort"
 	"strconv"
 	"strings"
@@ -10,13 +9,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//Error allows us to define constant errors
+type Error string
+
+func (e Error) Error() string { return string(e) }
+
 const (
 	//TASKRANGEIDENTIFIERREGEX is a regex string used for identifying whether <tasks> objects indicate a range of tasks (normally only expressed on pending tasks)
 	TASKRANGEIDENTIFIERREGEX string = `[0-9]{1,}-[0-9]{1,}:[0-9]`
 )
 
 //ErrInvalidTaskRangeIdentifier is an error that identifies jobs with a non-range conformant task attribute. Basically means you're trying to extrapolate jobs from a task range that isn't really a task range.
-var ErrInvalidTaskRangeIdentifier error = errors.New("The provided job does not actually indicate a range or group of tasks")
+const ErrInvalidTaskRangeIdentifier = Error("The provided job does not actually indicate a range or group of tasks")
 
 //Task is an element used for handling task arrays from the grid engine. Here we'll store the raw value (Source) and the TaskID if an individual identifier.
 type Task struct {
