@@ -17,6 +17,43 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type XMLDataSource struct {
+	location string
+}
+
+func (d *XMLDataSource) Get() (string, error) {
+
+	xmlresponse, err := http.Get(d.location)
+
+	if err != nil {
+		return "", err
+	}
+
+	content, err := ioutil.ReadAll(xmlresponse.Body)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(content), nil
+}
+
+type XmlContentReader struct {
+	resource XmlResourceGetter
+}
+
+func (x *XmlContentReader) Read() (string, error) {
+	return x.resource.Get()
+}
+
+type XmlResourceGetter interface {
+	Get() (string, error)
+}
+
+type XmlResourceReader interface {
+	Read() (string, error)
+}
+
 //GetQstatOutput is used to pull in XML content from either the QSTAT command or generated data for testing purpoes
 func GetQstatOutput(filters map[string]string) (string, error) {
 
@@ -189,27 +226,14 @@ func buildQstatArgumentList(filters map[string]string) []string {
 }
 
 func generatedQstatOputput() (string, error) {
-	//Get the medium XML file from the master repo
 
-	//Default
-	xmlsource := "https://raw.githubusercontent.com/metrumresearchgroup/gogridengine/master/test_data/medium.xml"
+	xmlLocation := XMLDataSource{location: "https://raw.githubusercontent.com/metrumresearchgroup/gogridengine/master/test_data/medium.xml"}
 
 	if os.Getenv("GOGRIDENGINE_TEST_SOURCE") != "" {
-		xmlsource = os.Getenv("GOGRIDENGINE_TEST_SOURCE")
+		xmlLocation.location = os.Getenv("GOGRIDENGINE_TEST_SOURCE")
 	}
 
-	xmlresponse, err := http.Get(xmlsource)
+	xmlResp := &XmlContentReader{resource: &xmlLocation}
 
-	if err != nil {
-		return "", err
-	}
-
-	content, err := ioutil.ReadAll(xmlresponse.Body)
-
-	if err != nil {
-		return "", err
-	}
-
-	return string(content), nil
-
+	return xmlResp.Read()
 }
