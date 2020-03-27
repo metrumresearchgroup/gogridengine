@@ -633,3 +633,112 @@ func TestTaskGroupExtrapolation(t *testing.T) {
 	assert.Error(t, err)
 
 }
+
+func TestIsJobInErrorState(t *testing.T) {
+	type args struct {
+		job Job
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "Not errored",
+			args: args{
+				job: Job {
+					StateAttribute: "running",
+					State:          "r",
+					JBJobNumber:    1,
+					JATPriority:    1,
+					JobName:        "test",
+					JobOwner:       "test",
+					StartTime:      "",
+					SubmittedTime:  "",
+					Slots:          1,
+					Tasks:          Task{},
+				},
+			},
+			want: 0,
+		},
+		{
+			name: "dt State should error",
+			args: args{
+				job: Job {
+					StateAttribute: "running",
+					State:          "dt",
+					JBJobNumber:    1,
+					JATPriority:    1,
+					JobName:        "test",
+					JobOwner:       "test",
+					StartTime:      "",
+					SubmittedTime:  "",
+					Slots:          1,
+					Tasks:          Task{},
+				},
+			},
+			want: 1,
+		},
+		{
+			name: "auo State should error",
+			args: args{
+				job: Job {
+					StateAttribute: "running",
+					State:          "auo",
+					JBJobNumber:    1,
+					JATPriority:    1,
+					JobName:        "test",
+					JobOwner:       "test",
+					StartTime:      "",
+					SubmittedTime:  "",
+					Slots:          1,
+					Tasks:          Task{},
+				},
+			},
+			want: 1,
+		},
+		{
+			name: "Host error code should return error",
+			args: args{
+				job: Job {
+					StateAttribute: "running",
+					State:          "Ew",
+					JBJobNumber:    1,
+					JATPriority:    1,
+					JobName:        "test",
+					JobOwner:       "test",
+					StartTime:      "",
+					SubmittedTime:  "",
+					Slots:          1,
+					Tasks:          Task{},
+				},
+			},
+			want: 1,
+		},
+		{
+			name: "any individual e code should error",
+			args: args{
+				job: Job {
+					StateAttribute: "running",
+					State:          "et",
+					JBJobNumber:    1,
+					JATPriority:    1,
+					JobName:        "test",
+					JobOwner:       "test",
+					StartTime:      "",
+					SubmittedTime:  "",
+					Slots:          1,
+					Tasks:          Task{},
+				},
+			},
+			want: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsJobInErrorState(tt.args.job); got != tt.want {
+				t.Errorf("IsJobInErrorState() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
