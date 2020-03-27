@@ -97,6 +97,34 @@ func IsJobRunning(job Job) int {
 	return 0
 }
 
+func IsJobInErrorState(job Job) int {
+	knownBadStates := []string{
+		"auo",
+		"dt",
+	}
+
+	knownBadStateComponents := []string{
+		"E",
+		"e",
+	}
+
+	//Look for discrete matches first
+	for _, v := range knownBadStates {
+		if job.State == v {
+			return 1
+		}
+	}
+
+	//Look for state code components (eE) or others that may indicate error
+	for _, v := range knownBadStateComponents {
+		if strings.Contains(job.State,v){
+			return 1
+		}
+	}
+
+	return 0
+}
+
 //GetJobs returns a slice of only jobs from both scheduled and unscheduled queues
 func GetJobs() (JobList, error) {
 	var jobs []Job
