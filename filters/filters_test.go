@@ -1,319 +1,348 @@
 package filters
 
 import (
+	"sort"
 	"testing"
-	"time"
 
 	"github.com/metrumresearchgroup/gogridengine"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewUsernameFilter(t *testing.T) {
-	jl := gogridengine.JobList{
-		{
-			JobOwner: "Bob",
-		},
-		{
-			JobOwner: "Cindy",
-		},
-	}
+func TestNewJobOwnerFilter(t *testing.T) {
+	jl := newJobList()
 
-	jl = jl.Filter(NewUsernameFilter("Cindy"))
-	assert.Equal(t, 1, len(jl))
+	jl, err := gogridengine.FilterJobs(jl, NewJobOwnerFilter("janed", "jilld"))
 
-	jl = jl.Filter(NewUsernameFilter("bobby"))
+	assert.Nil(t, err)
 
-	assert.Empty(t, jl)
-}
-
-func TestNewLooseStateFilter(t *testing.T) {
-	jl := gogridengine.JobList{
-		{
-			State: "r",
-		},
-		{
-			State: "e",
-		},
-		{
-			State: "ew",
-		},
-		{
-			State: "qw",
-		},
-		{
-			State: "ce",
-		},
-	}
-
-	//Test the loose filter first
-	r1 := jl.Filter(NewLooseStateFilter("r"))
-
-	assert.NotEmpty(t, r1)
-	assert.Len(t, r1, 1)
-
-	r2 := jl.Filter(NewLooseStateFilter("w"))
-
-	assert.NotEmpty(t, r2)
-	assert.Len(t, r2, 2)
-
-	r3 := jl.Filter(NewLooseStateFilter("e"))
-
-	assert.NotEmpty(t, r3)
-	assert.Len(t, r3, 3)
-
-	//Test for Chained Loose Filter
-	r4 := jl.
-		Filter(NewLooseStateFilter("e")).
-		Filter(NewLooseStateFilter("w"))
-
-	assert.NotEmpty(t, r4)
-	assert.Len(t, r4, 1)
-	assert.Equal(t, r4[0].State, "ew")
-}
-
-func TestNewStrictStateFilter(t *testing.T) {
-
-	jl := gogridengine.JobList{
-		{
-			State: "r",
-		},
-		{
-			State: "e",
-		},
-		{
-			State: "ew",
-		},
-		{
-			State: "qw",
-		},
-		{
-			State: "ce",
-		},
-		{
-			State: "r",
-		},
-	}
-
-	r1 := jl.Filter(NewStrictStateFilter("r"))
-
-	assert.NotEmpty(t, r1)
-	assert.Len(t, r1, 2)
-
-	r2 := jl.
-		Filter(NewLooseStateFilter("e")).
-		Filter(NewStrictStateFilter("ew"))
-
-	assert.NotEmpty(t, r2)
-	assert.Len(t, r2, 1)
-
-}
-
-func TestNewBeforeSubmitTimeFilter(t *testing.T) {
-	jl := gogridengine.JobList{
-		{
-			JobName:       "TheRightOne",
-			SubmittedTime: "2019-09-15T15:26:36",
-		},
-		{
-			JobName:       "TheWrongOne",
-			SubmittedTime: "2019-09-21T15:26:36",
-		},
-		{
-			JobName:       "Invalid",
-			SubmittedTime: "NotEvenAValidTime",
-		},
-	}
-
-	//Two days in the future
-	target := "2019-09-17T15:26:36"
-	targetTime, _ := time.Parse(ISO8601FMT, target)
-
-	//Show me jobs with a submit time earlier than the targetTime.
-	jl = jl.Filter(NewBeforeSubmitTimeFilter(targetTime))
-
-	assert.NotEmpty(t, jl)
-	assert.Len(t, jl, 1)
-	assert.Equal(t, "TheRightOne", jl[0].JobName)
-}
-
-func TestNewAfterSubmitTimeFilter(t *testing.T) {
-
-	jl := gogridengine.JobList{
-		{
-			JobName:       "TheWrongOne",
-			SubmittedTime: "2019-09-15T15:26:36",
-		},
-		{
-			JobName:       "TheRightOne",
-			SubmittedTime: "2019-09-21T15:26:36",
-		},
-		{
-			JobName:       "TheRightOne",
-			SubmittedTime: "2019-09-21T15:26:36",
-		},
-		{
-			JobName:       "TheRightOne",
-			SubmittedTime: "2019-09-21T15:26:37",
-		},
-		{
-			JobName:       "Invalid",
-			SubmittedTime: "ImNotEvenAValidTime",
-		},
-	}
-
-	//Two days in the future
-	target := "2019-09-17T15:26:36"
-	targetTime, _ := time.Parse(ISO8601FMT, target)
-
-	//Show me jobs with a submit time earlier than the targetTime.
-	jl = jl.Filter(NewAfterSubmitTimeFilter(targetTime))
+	sort.Slice(jl, func(i, j int) bool {
+		return jl[i].JBJobNumber < jl[j].JBJobNumber
+	})
 
 	assert.NotEmpty(t, jl)
 	assert.Len(t, jl, 3)
-	assert.Equal(t, "TheRightOne", jl[0].JobName)
+
+	assert.Equal(t, int64(13), jl[0].JBJobNumber)
+	assert.Equal(t, int64(14), jl[1].JBJobNumber)
+	assert.Equal(t, int64(16), jl[2].JBJobNumber)
+
+	jl = newJobList()
+
+	jl, err = gogridengine.FilterJobs(jl, NewJobOwnerFilter(""))
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(jl, NewJobOwnerFilter())
+	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
-func TestNewSubmitTimeBetweenFilter(t *testing.T) {
-	jl := gogridengine.JobList{
+func newJobList() gogridengine.JobList {
+	return gogridengine.JobList{
 		{
-			JobName:       "TheWrongOne",
-			SubmittedTime: "2019-09-15T15:26:36",
+			JBJobNumber:   11,
+			JobOwner:      "johnd",
+			State:         "r",
+			StartTime:     "2019-01-13T11:21:14",
+			SubmittedTime: "2018-01-13T11:21:15",
 		},
 		{
-			JobName:       "TheRightOne",
-			SubmittedTime: "2019-09-21T15:26:36",
+			JBJobNumber:   12,
+			JobOwner:      "johnd",
+			State:         "r",
+			StartTime:     "2019-01-14T11:21:15",
+			SubmittedTime: "2018-01-14T11:21:15",
 		},
 		{
-			JobName:       "SecondRightOne",
-			SubmittedTime: "2019-09-21T15:26:36",
+			JBJobNumber:   13,
+			JobOwner:      "jilld",
+			State:         "eh",
+			StartTime:     "2019-01-14T11:21:17",
+			SubmittedTime: "2018-01-14T11:21:17",
 		},
 		{
-			JobName:       "OutofSpec",
-			SubmittedTime: "2019-09-21T15:26:37",
+			JBJobNumber:   14,
+			JobOwner:      "janed",
+			State:         "h",
+			StartTime:     "2019-01-14T11:34:15",
+			SubmittedTime: "2018-01-14T11:34:15",
 		},
 		{
-			JobName:       "Invalid",
-			SubmittedTime: "ImNotEvenAValidTime",
+			JBJobNumber:   15,
+			JobOwner:      "joed",
+			State:         "qw",
+			StartTime:     "2019-01-15T08:34:15",
+			SubmittedTime: "2018-01-15T08:34:15",
+		},
+		{
+			JBJobNumber:   16,
+			JobOwner:      "janed",
+			State:         "h",
+			StartTime:     "2019-01-15T23:34:15",
+			SubmittedTime: "2018-01-15T23:34:15",
 		},
 	}
-
-	//Two days in the future
-	start := "2019-09-21T15:26:35"
-	startTime, _ := time.Parse(ISO8601FMT, start)
-
-	end := "2019-09-21T15:26:37"
-	endTime, _ := time.Parse(ISO8601FMT, end)
-
-	//Show me jobs with a submit time earlier than the targetTime.
-	jl = jl.Filter(NewBetweenSubmitTimeFilter(startTime, endTime))
-
-	assert.NotEmpty(t, jl)
-	assert.Len(t, jl, 2)
-	assert.Equal(t, "TheRightOne", jl[0].JobName)
-
 }
 
+//10,13,14,16
+func TestNewJobStateFilter(t *testing.T) {
+	jl := newJobList()
+
+	jl, err := gogridengine.FilterJobs(jl, NewJobStateFilter("e", "h"))
+
+	assert.Nil(t, err)
+
+	sort.Slice(jl, func(i, j int) bool {
+		return jl[i].JBJobNumber < jl[j].JBJobNumber
+	})
+
+	assert.NotEmpty(t, jl)
+
+	assert.Len(t, jl, 3)
+
+	assert.Equal(t, int64(13), jl[0].JBJobNumber)
+	assert.Equal(t, int64(14), jl[1].JBJobNumber)
+	assert.Equal(t, int64(16), jl[2].JBJobNumber)
+
+	jl = newJobList()
+	jl, err = gogridengine.FilterJobs(jl, NewJobStateFilter(""))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(jl, NewJobStateFilter())
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	assert.Equal(t, newJobList(), jl)
+}
+
+func TestNewStartingJobNumberFilter(t *testing.T) {
+	jl := newJobList()
+
+	jl, err := gogridengine.FilterJobs(jl, NewStartingJobNumberFilter("13"))
+
+	assert.Nil(t, err)
+
+	sort.Slice(jl, func(i, j int) bool {
+		return jl[i].JBJobNumber < jl[j].JBJobNumber
+	})
+
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 4)
+
+	for i := 0; i < len(jl); i++ {
+		assert.Equal(t, int64(13+i), jl[i].JBJobNumber)
+	}
+
+	jl, err = gogridengine.FilterJobs(jl, NewStartingJobNumberFilter("cat"))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewStartingJobNumberFilter())
+
+	//No input means every job should validate false.
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(jl, NewStartingJobNumberFilter(""))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(jl, NewStartingJobNumberFilter("13", "15"))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+}
+
+//11
+func TestNewBeforeSubmissionTimeFilter(t *testing.T) {
+	jl := newJobList()
+
+	jl, err := gogridengine.FilterJobs(jl, NewBeforeSubmissionTimeFilter("2018-01-14T11:21:15"))
+
+	assert.Nil(t, err)
+
+	//Remember that Job 1 can't be processed so isn't eligible for the filter.
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 1)
+	assert.Equal(t, int64(11), jl[0].JBJobNumber)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewBeforeSubmissionTimeFilter("notavalidtime"))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl = newJobList()
+	jl[0].SubmittedTime = "meow"
+
+	jl, err = gogridengine.FilterJobs(jl, NewBeforeSubmissionTimeFilter("2018-01-14T11:21:15"))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	//Testing for basically empty submission time
+	jl = newJobList()
+	jl[0].SubmittedTime = ""
+
+	jl, err = gogridengine.FilterJobs(jl, NewBeforeSubmissionTimeFilter("2018-01-14T11:21:15"))
+
+	assert.Nil(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewBeforeSubmissionTimeFilter())
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewBeforeSubmissionTimeFilter(""))
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewBeforeSubmissionTimeFilter("2018-01-14T11:21:15", "2018-01-14T11:21:17"))
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+}
+
+//13,14,15,16
+func TestNewAfterSubmissionTimeFilter(t *testing.T) {
+	jl := newJobList()
+
+	jl, err := gogridengine.FilterJobs(jl, NewAfterSubmissionTimeFilter("2018-01-14T11:21:15"))
+
+	//Remember that Job 1 can't be processed so isn't eligible for the filter.
+	assert.Nil(t, err)
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 4)
+
+	for i := 0; i < len(jl); i++ {
+		assert.Equal(t, int64(i+13), jl[i].JBJobNumber)
+	}
+
+	//Item without a time
+	jl = newJobList()
+	jl[0].SubmittedTime = ""
+	jl, err = gogridengine.FilterJobs(jl, NewAfterSubmissionTimeFilter("2018-01-14T11:21:15"))
+
+	assert.Nil(t, err)
+
+	//Item with invalid time
+	jl = newJobList()
+	jl[0].SubmittedTime = "cat"
+	jl, err = gogridengine.FilterJobs(jl, NewAfterSubmissionTimeFilter("2018-01-14T11:21:15"))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewAfterSubmissionTimeFilter("notavalidtime"))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewAfterSubmissionTimeFilter())
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewAfterSubmissionTimeFilter(""))
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(jl, NewAfterSubmissionTimeFilter("2018-01-14T11:21:15", "2018-01-14T11:21:17"))
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+}
+
+//11
 func TestNewBeforeStartTimeFilter(t *testing.T) {
-	jl := gogridengine.JobList{
-		{
-			JobName:   "TheRightOne",
-			StartTime: "2019-09-15T15:26:36",
-		},
-		{
-			JobName:   "TheWrongOne",
-			StartTime: "2019-09-21T15:26:36",
-		},
-		{
-			JobName:   "Invalid",
-			StartTime: "NotEvenAValidTime",
-		},
-	}
+	jl := newJobList()
 
-	//Two days in the future
-	target := "2019-09-17T15:26:36"
-	targetTime, _ := time.Parse(ISO8601FMT, target)
+	jl, err := gogridengine.FilterJobs(jl, NewBeforeStartTimeFilter("2019-01-14T11:21:15"))
 
-	//Show me jobs with a submit time earlier than the targetTime.
-	jl = jl.Filter(NewBeforeStartTimeFilter(targetTime))
-
+	//Remember that Job 1 can't be processed so isn't eligible for the filter.
+	assert.Nil(t, err)
 	assert.NotEmpty(t, jl)
 	assert.Len(t, jl, 1)
-	assert.Equal(t, "TheRightOne", jl[0].JobName)
+	assert.Equal(t, int64(11), jl[0].JBJobNumber)
+
+	jl = newJobList()
+	jl[1].StartTime = ""
+	jl, err = gogridengine.FilterJobs(jl, NewBeforeStartTimeFilter("2019-01-14T11:21:15"))
+
+	assert.Nil(t, err)
+	assert.NotEmpty(t, jl)
+
+	jl = newJobList()
+	jl[1].StartTime = "cat"
+	jl, err = gogridengine.FilterJobs(jl, NewBeforeStartTimeFilter("2019-01-14T11:21:15"))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewBeforeStartTimeFilter("notavalidtime"))
+
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewBeforeStartTimeFilter())
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewBeforeStartTimeFilter(""))
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(jl, NewBeforeStartTimeFilter("2019-01-14T11:21:15", "2019-01-14T11:21:15"))
+	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
+//13,14,15,16
 func TestNewAfterStartTimeFilter(t *testing.T) {
+	jl := newJobList()
 
-	jl := gogridengine.JobList{
-		{
-			JobName:   "TheWrongOne",
-			StartTime: "2019-09-15T15:26:36",
-		},
-		{
-			JobName:   "TheRightOne",
-			StartTime: "2019-09-21T15:26:36",
-		},
-		{
-			JobName:   "TheRightOne",
-			StartTime: "2019-09-21T15:26:36",
-		},
-		{
-			JobName:   "TheRightOne",
-			StartTime: "2019-09-21T15:26:37",
-		},
-		{
-			JobName:   "Invalid",
-			StartTime: "ImNotEvenAValidTime",
-		},
+	jl, err := gogridengine.FilterJobs(jl, NewAfterStartTimeFilter("2019-01-14T11:21:15"))
+
+	//Remember that Job 1 can't be processed so isn't eligible for the filter.
+	assert.Nil(t, err)
+	assert.NotEmpty(t, jl)
+	assert.Len(t, jl, 4)
+
+	for i := 0; i < len(jl); i++ {
+		assert.Equal(t, int64(i+13), jl[i].JBJobNumber)
 	}
 
-	//Two days in the future
-	target := "2019-09-17T15:26:36"
-	targetTime, _ := time.Parse(ISO8601FMT, target)
+	jl = newJobList()
+	jl[1].StartTime = ""
 
-	//Show me jobs with a submit time earlier than the targetTime.
-	jl = jl.Filter(NewAfterStartTimeFilter(targetTime))
+	jl, err = gogridengine.FilterJobs(jl, NewAfterStartTimeFilter("2019-01-14T11:21:15"))
 
+	assert.Nil(t, err)
 	assert.NotEmpty(t, jl)
-	assert.Len(t, jl, 3)
-	assert.Equal(t, "TheRightOne", jl[0].JobName)
-}
 
-func TestNewStartTimeBetweenFilter(t *testing.T) {
-	jl := gogridengine.JobList{
-		{
-			JobName:   "TheWrongOne",
-			StartTime: "2019-09-15T15:26:36",
-		},
-		{
-			JobName:   "TheRightOne",
-			StartTime: "2019-09-21T15:26:36",
-		},
-		{
-			JobName:   "SecondRightOne",
-			StartTime: "2019-09-21T15:26:36",
-		},
-		{
-			JobName:   "OutofSpec",
-			StartTime: "2019-09-21T15:26:37",
-		},
-		{
-			JobName:   "Invalid",
-			StartTime: "ImNotEvenAValidTime",
-		},
-	}
+	jl = newJobList()
+	jl[1].StartTime = "cat"
 
-	//Two days in the future
-	start := "2019-09-21T15:26:35"
-	startTime, _ := time.Parse(ISO8601FMT, start)
+	jl, err = gogridengine.FilterJobs(jl, NewAfterStartTimeFilter("2019-01-14T11:21:15"))
 
-	end := "2019-09-21T15:26:37"
-	endTime, _ := time.Parse(ISO8601FMT, end)
+	assert.NotNil(t, err)
+	assert.Error(t, err)
 
-	//Show me jobs with a submit time earlier than the targetTime.
-	jl = jl.Filter(NewBetweenStartTimeFilter(startTime, endTime))
+	jl, err = gogridengine.FilterJobs(newJobList(), NewAfterStartTimeFilter("notavalidtime"))
 
-	assert.NotEmpty(t, jl)
-	assert.Len(t, jl, 2)
-	assert.Equal(t, "TheRightOne", jl[0].JobName)
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewAfterStartTimeFilter())
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(newJobList(), NewAfterStartTimeFilter(""))
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+
+	jl, err = gogridengine.FilterJobs(jl, NewAfterStartTimeFilter("2019-01-14T11:21:15", "2019-01-14T11:21:17"))
+	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 }

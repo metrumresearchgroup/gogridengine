@@ -171,5 +171,5 @@ func (r ResourceList) locateKey(key string) (*Resource, error) {
 	}
 
 	//If none are found:
-	return &Resource{}, errors.New("Could not located the requested key")
+	return &Resource{}, errors.New("Could not locate the requested key")
 }
