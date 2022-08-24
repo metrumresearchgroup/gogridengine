@@ -3,6 +3,7 @@ package extractor
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -14,6 +15,7 @@ type QstatExtractor struct {
 
 func (e *QstatExtractor) Extract() ([]byte, error) {
 	cmd := exec.Command(e.Path, e.Params...)
+	cmd.Env = os.Environ()
 
 	buff := new(bytes.Buffer)
 	cmd.Stdout = buff
@@ -41,7 +43,7 @@ func New(qstatPath *string) (*QstatExtractor, error) {
 	if qstatPath != nil {
 		if !strings.HasPrefix(*qstatPath, "/") {
 			if e.Path, err = exec.LookPath(*qstatPath); err != nil {
-				return nil, fmt.Errorf("we couldn't find %s in your path. please verify and try again", *qstatPath)
+				return nil, fmt.Errorf("we couldn't find %s in your path. please verify and try again: %w", *qstatPath, err)
 			}
 		}
 	}

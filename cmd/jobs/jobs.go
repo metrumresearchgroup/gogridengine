@@ -12,6 +12,8 @@ func flags(c *cobra.Command) {
 	c.Flags().String("host", "", "filter jobs for an existing queue host")
 	c.Flags().Int("job-id", 0, "An id of a job to filter for")
 	c.Flags().String("state", "", "A specific state for which to query jobs on")
+	c.Flags().String("user", "", "A specific user for which to query jobs)")
+	_ = viper.BindPFlags(c.Flags())
 }
 
 func JobsCmd() *cobra.Command {
@@ -37,10 +39,7 @@ func JobsCmd() *cobra.Command {
 				return err
 			}
 
-			getRequest := &sge.GetJobsRequest{
-				User: &input.User,
-				ID:   &input.JobId,
-			}
+			getRequest := &sge.GetJobsRequest{}
 
 			if input.Host != "" {
 				getRequest.Host = &input.Host
@@ -67,7 +66,9 @@ func JobsCmd() *cobra.Command {
 				return err
 			}
 
-			println(output)
+			for _, v := range output {
+				println(v.JBJobNumber)
+			}
 
 			return nil
 		},
@@ -76,5 +77,3 @@ func JobsCmd() *cobra.Command {
 
 	return c
 }
-
-
