@@ -205,7 +205,7 @@ func TestDeSerializePendingQStat(t *testing.T) {
 	}
 
 	//Verify that we have pending jobs
-	if len(ji.Jobs.JobList) <= 0 {
+	if len(ji.PendingJobs.JobList) <= 0 {
 		t.Errorf("No pending jobs were serialized")
 	}
 }
@@ -1012,7 +1012,7 @@ func TestDeserializingWithTasks(t *testing.T) {
 		}
 	}
 
-	for _, q := range ji.Jobs.JobList {
+	for _, q := range ji.PendingJobs.JobList {
 		assert.True(t, q.Tasks.Source != "")
 	}
 }
@@ -1197,7 +1197,7 @@ func TestNewJobInfo(t *testing.T) {
 		Slots: 1,
 	}
 
-	matched := FilterJobs(ji.Jobs.JobList, func(j Job) bool {
+	matched := FilterJobs(ji.PendingJobs.JobList, func(j Job) bool {
 		return j.Tasks.TaskID == 41
 	})
 
@@ -1223,7 +1223,7 @@ func TestNewJobInfo(t *testing.T) {
 		Slots: 1,
 	}
 
-	matched = FilterJobs(ji.Jobs.JobList, func(j Job) bool {
+	matched = FilterJobs(ji.PendingJobs.JobList, func(j Job) bool {
 		return j.Tasks.TaskID == 75
 	})
 
@@ -1249,7 +1249,7 @@ func TestNewJobInfo(t *testing.T) {
 		Slots: 1,
 	}
 
-	matched = FilterJobs(ji.Jobs.JobList, func(j Job) bool {
+	matched = FilterJobs(ji.PendingJobs.JobList, func(j Job) bool {
 		return j.Tasks.TaskID == 150
 	})
 
@@ -1257,8 +1257,8 @@ func TestNewJobInfo(t *testing.T) {
 	assert.Len(t, matched, 1)
 	assert.Equal(t, onefifty, matched[0])
 
-	assert.NotEmpty(t, ji.Jobs.JobList)
-	assert.Len(t, ji.Jobs.JobList, 110)
-	assert.Equal(t, int64(41), ji.Jobs.JobList[0].Tasks.TaskID)
-	assert.Equal(t, int64(150), ji.Jobs.JobList[len(ji.Jobs.JobList)-1].Tasks.TaskID)
+	assert.NotEmpty(t, ji.PendingJobs.JobList)
+	assert.Len(t, ji.PendingJobs.JobList, 110)
+	assert.Equal(t, int64(41), ji.PendingJobs.JobList[0].Tasks.TaskID)
+	assert.Equal(t, int64(150), ji.PendingJobs.JobList[len(ji.PendingJobs.JobList)-1].Tasks.TaskID)
 }

@@ -24,7 +24,7 @@ const ErrInvalidTaskRangeIdentifier = Error("The provided job does not actually 
 
 // Task is an element used for handling task arrays from the grid engine. Here we'll store the raw value (Source) and the TaskID if an individual identifier.
 type Task struct {
-	//Mixed type. Can be either a string representation of an int64 OR a string range identifier, eg: 40-55:1 (Jobs 40-55 incremented by 1)
+	//Mixed type. Can be either a string representation of an int64 OR a string range identifier, eg: 40-55:1 (PendingJobs 40-55 incremented by 1)
 	Source string
 	//Typed representation of the Source if mapped to an integer
 	TaskID int64
@@ -68,7 +68,7 @@ func (t *Task) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return nil
 }
 
-// JobList is a slice of Jobs that is filterable and otherwise actionable via receiver.
+// JobList is a slice of PendingJobs that is filterable and otherwise actionable via receiver.
 type JobList []Job
 
 // Job is the Sun Grid Engine XML Definition for a job running on a specific host, its details and current status
@@ -147,7 +147,7 @@ func GetJobs() (JobList, error) {
 	}
 
 	//Add pending jobs
-	jobs = append(jobs, ji.Jobs.JobList...)
+	jobs = append(jobs, ji.PendingJobs.JobList...)
 
 	return jobs, nil
 }

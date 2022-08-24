@@ -37,6 +37,7 @@ func New(qstatPath *string) (*QstatExtractor, error) {
 		// Default is to assume qstat is just called from the path
 		Path: "qstat",
 		Params: []string{
+			"-F",
 			"-xml",
 		},
 	}

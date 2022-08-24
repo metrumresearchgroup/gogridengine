@@ -37,7 +37,7 @@ type GetJobsRequest struct {
 	Host  *string // uses the -q option
 }
 
-// Build is responsible for generating additional parameters passed down to the underlying cmd
+// Bootstrap is responsible for generating additional parameters passed down to the underlying cmd
 func (request *GetJobsRequest) Bootstrap(extractor GridExtractor) {
 	if request.User != nil {
 		extractor.AddArguments([]string{"-u", *request.User}...)
@@ -53,6 +53,7 @@ func (request *GetJobsRequest) Bootstrap(extractor GridExtractor) {
 }
 
 func (r *JobRepository) Get(request *GetJobsRequest) (gogridengine.JobList, error) {
+	var outputJobs gogridengine.JobList
 
 	request.Bootstrap(r.extractor)
 
@@ -66,5 +67,12 @@ func (r *JobRepository) Get(request *GetJobsRequest) (gogridengine.JobList, erro
 		return nil, fmt.Errorf("unable to process expected xml output from command: %w", err)
 	}
 
-	return ji.Jobs.JobList, nil
+	//Pending jobs
+	outputJobs = append(outputJobs, ji.PendingJobs.JobList...)
+
+	for _, v := range ji.QueueInfo.Queues {
+		outputJobs = append(outputJobs, v.JobList...)
+	}
+
+	return outputJobs, nil
 }
