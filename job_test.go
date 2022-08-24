@@ -547,7 +547,7 @@ func TestTaskRangeSerialization(t *testing.T) {
 
 	assert.Contains(t, string(x), "<tasks>50-125:5</tasks>")
 
-	//Unparseable Source should still return content of the Task ID
+	//Unparseable Path should still return content of the Task ID
 	ji.QueueInfo.Queues[0].JobList[0].Tasks.Source = "cat"
 	ji.QueueInfo.Queues[0].JobList[0].Tasks.TaskID = 123
 
@@ -646,7 +646,7 @@ func TestIsJobInErrorState(t *testing.T) {
 		{
 			name: "Not errored",
 			args: args{
-				job: Job {
+				job: Job{
 					StateAttribute: "running",
 					State:          "r",
 					JBJobNumber:    1,
@@ -664,7 +664,7 @@ func TestIsJobInErrorState(t *testing.T) {
 		{
 			name: "dt State should error",
 			args: args{
-				job: Job {
+				job: Job{
 					StateAttribute: "running",
 					State:          "dt",
 					JBJobNumber:    1,
@@ -682,7 +682,7 @@ func TestIsJobInErrorState(t *testing.T) {
 		{
 			name: "auo State should error",
 			args: args{
-				job: Job {
+				job: Job{
 					StateAttribute: "running",
 					State:          "auo",
 					JBJobNumber:    1,
@@ -700,7 +700,7 @@ func TestIsJobInErrorState(t *testing.T) {
 		{
 			name: "Host error code should return error",
 			args: args{
-				job: Job {
+				job: Job{
 					StateAttribute: "running",
 					State:          "Ew",
 					JBJobNumber:    1,
@@ -718,7 +718,7 @@ func TestIsJobInErrorState(t *testing.T) {
 		{
 			name: "any individual e code should error",
 			args: args{
-				job: Job {
+				job: Job{
 					StateAttribute: "running",
 					State:          "et",
 					JBJobNumber:    1,
