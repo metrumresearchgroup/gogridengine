@@ -54,7 +54,7 @@ type XmlResourceReader interface {
 	Read() (string, error)
 }
 
-//GetQstatOutput is used to pull in XML content from either the QSTAT command or generated data for testing purpoes
+// GetQstatOutput is used to pull in XML content from either the QSTAT command or generated data for testing purpoes
 func GetQstatOutput(filters map[string]string) (string, error) {
 
 	if os.Getenv(environmentPrefix+"TEST") != "true" {
@@ -65,7 +65,7 @@ func GetQstatOutput(filters map[string]string) (string, error) {
 	return generatedQstatOputput()
 }
 
-//DeleteQueuedJobByID is used to delete (1 or many) jobs by concatenating their IDs together and passing them to qdel
+// DeleteQueuedJobByID is used to delete (1 or many) jobs by concatenating their IDs together and passing them to qdel
 func DeleteQueuedJobByID(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
@@ -109,7 +109,7 @@ func DeleteQueuedJobByID(targets []string) (string, error) {
 	return output.String(), nil
 }
 
-//DeleteQueuedJobByUsernames is used to delete (1 or many) jobs by concatenating usernames together and feeding them to qdel
+// DeleteQueuedJobByUsernames is used to delete (1 or many) jobs by concatenating usernames together and feeding them to qdel
 func DeleteQueuedJobByUsernames(targets []string) (string, error) {
 
 	//If this is in test mode, just return empty error and exit quickly
@@ -156,7 +156,7 @@ func DeleteQueuedJobByUsernames(targets []string) (string, error) {
 	return output.String(), nil
 }
 
-//Filters are meant to be in the form of [key] being being a switch and the value to be the anything passed to the option
+// Filters are meant to be in the form of [key] being being a switch and the value to be the anything passed to the option
 func qStatFromExec(filters map[string]string) (string, error) {
 
 	//Locate the binary in existing path
@@ -176,16 +176,11 @@ func qStatFromExec(filters map[string]string) (string, error) {
 
 	command := exec.CommandContext(ctx, binary, arguments...)
 	command.Env = os.Environ()
-	outputBytes, err := command.Output()
+	outputBytes, err := command.CombinedOutput()
 
 	if err != nil {
-		log.Error("An error occurred during execution of the requested binary: ", err)
-		return "", err
-	}
-
-	if err != nil {
-		log.Error("There was an error while attempting to run the ", binary, ": ", err)
-		return "", err
+		log.Errorf("An error occurred during execution of the the binary %s. Execution details are %s ", binary, string(outputBytes))
+		return "", fmt.Errorf("an error occurred during execution of the the binary %s. Execution details are %s. Error: %w", binary, string(outputBytes), err)
 	}
 
 	return string(outputBytes), nil
@@ -226,7 +221,6 @@ func buildQstatArgumentList(filters map[string]string) []string {
 }
 
 func generatedQstatOputput() (string, error) {
-
 	xmlLocation := XMLDataSource{location: "https://raw.githubusercontent.com/metrumresearchgroup/gogridengine/master/test_data/medium.xml"}
 
 	if os.Getenv("GOGRIDENGINE_TEST_SOURCE") != "" {

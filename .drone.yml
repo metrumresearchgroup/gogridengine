@@ -9,22 +9,7 @@ steps:
 - name: Test
   image: golang
   commands:
-  - go test ./... -covermode=count -coverprofile=coverage.out
-  when:
-  event:
-    exclude:
-    - pull_request
-
-- name: Coveralls
-  image: golang
-  environment:
-    COVERALLS_TOKEN:
-      from_secret: COVERALLS_TOKEN
-  commands:
-  - go get golang.org/x/tools/cmd/cover
-  - go get github.com/mattn/goveralls
-  - go mod download
-  - goveralls -coverprofile=coverage.out -service=drone.io -repotoken $COVERALLS_TOKEN
+  - go test ./...
   when:
   event:
     exclude:
