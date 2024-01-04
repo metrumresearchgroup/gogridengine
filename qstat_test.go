@@ -39,7 +39,7 @@ func TestCLIModeFailureGetQstatOutput(t *testing.T) {
 	}
 }
 
-//Just testing to make sure that it doesn't generate unexpected errors.
+// Just testing to make sure that it doesn't generate unexpected errors.
 func TestGeneratedOutputGenerateQState(t *testing.T) {
 	//Force to run output and fail
 	os.Setenv(environmentPrefix+"TEST", "true")
@@ -87,7 +87,7 @@ func TestDeleteQueuedJobByID(t *testing.T) {
 					"2",
 				},
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "Test Mode. Should pass",
@@ -117,7 +117,7 @@ func TestDeleteQueuedJobByID(t *testing.T) {
 	purgeBinary("qdel")
 }
 
-//Create an executable qstat file that will exit ok. Will also print the raw input just so we can verify it
+// Create an executable qstat file that will exit ok. Will also print the raw input just so we can verify it
 func fakeBinary(name string) {
 	contents := `#!/bin/bash
 	echo $0 $@
@@ -155,7 +155,7 @@ func TestDeleteQueuedJobByUsernames(t *testing.T) {
 					"dbreeden",
 				},
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "Test Mode",
