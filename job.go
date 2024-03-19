@@ -39,7 +39,7 @@ func (t *Task) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	t.Source = v
 
 	if !strings.Contains(t.Source, ":") || (t.Source, ",") {
-		//Only process TaskIDs when not presented with a ":"
+		//Only process TaskIDs when not presented with a ":" or ","
 		parsed, err := strconv.ParseInt(t.Source, 10, 64)
 
 		if err != nil {
