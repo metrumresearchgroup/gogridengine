@@ -48,6 +48,8 @@ func (t *Task) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		}
 
 		t.TaskID = parsed
+	}	else {
+
 	}
 
 	return nil
